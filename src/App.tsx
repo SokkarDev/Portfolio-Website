@@ -1,5 +1,6 @@
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, lazy, Suspense, useState, createContext, useContext } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Navigation } from './components/Navigation';
 import { Footer } from './components/Footer';
 import { Preloader } from './components/Preloader';
@@ -57,6 +58,9 @@ function AppContent({ isReady }: { isReady: boolean }) {
         
         {/* Custom Cursor */}
         {isReady && <CustomCursor />}
+        
+        {/* Vercel Speed Insights */}
+        <SpeedInsights />
       </div>
     </AppReadyContext.Provider>
   );
