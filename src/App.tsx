@@ -5,6 +5,7 @@ import { Footer } from './components/Footer';
 import { Preloader } from './components/Preloader';
 import ChatBot from './components/ChatBot';
 import CustomCursor from './components/CustomCursor';
+import { Analytics } from '@vercel/analytics/react';
 
 // Create context to signal when app is ready for heavy initialization
 export const AppReadyContext = createContext(false);
@@ -57,6 +58,9 @@ function AppContent({ isReady }: { isReady: boolean }) {
         
         {/* Custom Cursor */}
         {isReady && <CustomCursor />}
+        
+        {/* Vercel Web Analytics */}
+        <Analytics />
       </div>
     </AppReadyContext.Provider>
   );
