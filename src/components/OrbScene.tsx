@@ -3,40 +3,32 @@ import { useFrame } from '@react-three/fiber';
 import { Sphere, MeshDistortMaterial, Float, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 
-// Shared mouse position and hover state - updated from InteractiveOrb component
 export const mousePosition = { x: 0, y: 0 };
 export const orbHoverState = { isHovered: false };
 
 function AnimatedSphere() {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<any>(null);
-  
-  // Smooth target position
   const targetRotation = useRef({ x: 0, y: 0 });
   const currentDistort = useRef(0.35);
 
   useFrame((state) => {
     if (meshRef.current) {
-      // Enhanced mouse following
       targetRotation.current.x = mousePosition.y * 0.5;
       targetRotation.current.y = mousePosition.x * 0.5;
       
-      // Lerp to target (smooth interpolation)
       meshRef.current.rotation.x += (targetRotation.current.x - meshRef.current.rotation.x + state.clock.elapsedTime * 0.08) * 0.08;
       meshRef.current.rotation.y += (targetRotation.current.y - meshRef.current.rotation.y + state.clock.elapsedTime * 0.1) * 0.08;
       
-      // More pronounced position shift based on mouse
       meshRef.current.position.x += (mousePosition.x * 0.25 - meshRef.current.position.x) * 0.05;
       meshRef.current.position.y += (mousePosition.y * 0.2 - meshRef.current.position.y) * 0.05;
       
-      // Scale pulse on hover
       const targetScale = orbHoverState.isHovered ? 1.15 : 1;
       const currentScale = meshRef.current.scale.x;
       const newScale = currentScale + (targetScale - currentScale) * 0.08;
       meshRef.current.scale.setScalar(newScale);
     }
     if (materialRef.current) {
-      // More dramatic distortion changes on hover and mouse movement
       const mouseSpeed = Math.abs(mousePosition.x) + Math.abs(mousePosition.y);
       const baseDistort = orbHoverState.isHovered ? 0.6 : 0.35;
       const mouseDistort = Math.min(mouseSpeed * 0.15, 0.15);
@@ -45,7 +37,6 @@ function AnimatedSphere() {
       currentDistort.current += (targetDistort - currentDistort.current) * 0.1;
       materialRef.current.distort = currentDistort.current;
       
-      // Color shift on hover
       if (orbHoverState.isHovered) {
         materialRef.current.color.lerp(new THREE.Color('#a855f7'), 0.05);
       } else {
@@ -79,8 +70,6 @@ function InnerGlow() {
     if (meshRef.current) {
       meshRef.current.rotation.x = -state.clock.elapsedTime * 0.05;
       meshRef.current.rotation.y = -state.clock.elapsedTime * 0.07;
-      
-      // Pulse more on hover
       const baseScale = orbHoverState.isHovered ? 0.85 : 0.75;
       const scale = baseScale + Math.sin(state.clock.elapsedTime * 0.6) * 0.04;
       meshRef.current.scale.setScalar(scale);
@@ -100,7 +89,6 @@ function InnerGlow() {
   );
 }
 
-// Exploding particles that respond to hover
 function ExplodingParticles() {
   const groupRef = useRef<THREE.Group>(null);
   const particlesRef = useRef<THREE.Mesh[]>([]);
@@ -136,12 +124,10 @@ function ExplodingParticles() {
       groupRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.08) * 0.05 + mousePosition.y * 0.2;
     }
     
-    // Animate each particle
     particlesRef.current.forEach((mesh, i) => {
       if (!mesh) return;
       const particle = particles[i];
       
-      // Lerp between base and exploded position based on hover
       const targetX = orbHoverState.isHovered ? particle.explodedPosition[0] : particle.basePosition[0];
       const targetY = orbHoverState.isHovered ? particle.explodedPosition[1] : particle.basePosition[1];
       const targetZ = orbHoverState.isHovered ? particle.explodedPosition[2] : particle.basePosition[2];
@@ -150,7 +136,6 @@ function ExplodingParticles() {
       mesh.position.y += (targetY - mesh.position.y) * 0.08 * particle.speed;
       mesh.position.z += (targetZ - mesh.position.z) * 0.08 * particle.speed;
       
-      // Pulse scale
       const baseScale = particle.scale * (orbHoverState.isHovered ? 1.5 : 1);
       const scale = baseScale + Math.sin(state.clock.elapsedTime * 2 + i) * 0.005;
       mesh.scale.setScalar(scale);
@@ -179,15 +164,12 @@ function ExplodingParticles() {
   );
 }
 
-// Orbiting ring with mouse influence
 function OrbitRing({ radius, speed, color, tilt }: { radius: number; speed: number; color: string; tilt: [number, number, number] }) {
   const ringRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     if (ringRef.current) {
       ringRef.current.rotation.z = state.clock.elapsedTime * speed;
-      
-      // Expand on hover
       const targetScale = orbHoverState.isHovered ? 1.15 : 1;
       const currentScale = ringRef.current.scale.x;
       const newScale = currentScale + (targetScale - currentScale) * 0.08;
@@ -211,7 +193,6 @@ function OrbitRing({ radius, speed, color, tilt }: { radius: number; speed: numb
   );
 }
 
-// Floating small orbs around main sphere
 function FloatingOrbs() {
   const groupRef = useRef<THREE.Group>(null);
   
@@ -251,7 +232,6 @@ function FloatingOrb({ angle, radius, speed, size, yOffset, index }: { angle: nu
       meshRef.current.position.z = Math.sin(currentAngle) * expandedRadius;
       meshRef.current.position.y = yOffset + Math.sin(state.clock.elapsedTime * 0.5 + index) * 0.1;
       
-      // Pulse
       const scale = size * (1 + Math.sin(state.clock.elapsedTime * 2 + index) * 0.2);
       meshRef.current.scale.setScalar(scale);
     }

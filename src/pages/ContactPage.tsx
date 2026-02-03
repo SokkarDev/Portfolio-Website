@@ -68,7 +68,6 @@ export function ContactPage() {
   return (
     <div className="pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-6">
-        {/* Header */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -85,7 +84,6 @@ export function ContactPage() {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24">
-          {/* Contact Info */}
           <motion.div
             initial="hidden"
             animate="visible"
@@ -122,7 +120,6 @@ export function ContactPage() {
             </div>
           </motion.div>
 
-          {/* Contact Form */}
           <motion.div
             initial="hidden"
             animate="visible"
@@ -135,7 +132,6 @@ export function ContactPage() {
           </motion.div>
         </div>
 
-        {/* FAQs */}
         <motion.div
           initial="hidden"
           whileInView="visible"

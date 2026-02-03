@@ -94,7 +94,6 @@ const process = [
   { step: '04', title: 'Launch', description: 'Go live & support' },
 ];
 
-// Smooth animation variants
 const stagger = {
   animate: {
     transition: {
@@ -107,7 +106,6 @@ export function ServicesPage() {
   return (
     <div className="min-h-screen pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-6">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -122,7 +120,6 @@ export function ServicesPage() {
           </p>
         </motion.div>
 
-        {/* Services Grid */}
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-20"
           variants={stagger}
@@ -162,7 +159,6 @@ export function ServicesPage() {
           ))}
         </motion.div>
 
-        {/* Why Choose Me - Redesigned */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -194,7 +190,6 @@ export function ServicesPage() {
           </div>
         </motion.div>
 
-        {/* Process - Compact */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -205,7 +200,30 @@ export function ServicesPage() {
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">
             My <span className="gradient-text">Process</span>
           </h2>
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-2">
+          
+          {/* Mobile: Horizontal Scroll */}
+          <div className="md:hidden">
+            <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6">
+              {process.map((step, index) => (
+                <motion.div
+                  key={step.step}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className="glass-effect rounded-2xl p-6 min-w-[200px] w-[70vw] max-w-[250px] flex-shrink-0 snap-center text-center"
+                >
+                  <span className="text-4xl font-bold text-indigo-500/30 block mb-2">{step.step}</span>
+                  <h3 className="font-semibold text-lg mb-1">{step.title}</h3>
+                  <p className="text-gray-500 text-sm">{step.description}</p>
+                </motion.div>
+              ))}
+            </div>
+            <p className="text-center text-gray-500 text-xs mt-4">← Swipe to see more →</p>
+          </div>
+
+          {/* Desktop: Horizontal Layout */}
+          <div className="hidden md:flex items-center justify-center gap-2">
             {process.map((step, index) => (
               <div key={step.step} className="flex items-center">
                 <motion.div
@@ -222,7 +240,7 @@ export function ServicesPage() {
                   </div>
                 </motion.div>
                 {index < process.length - 1 && (
-                  <svg className="w-5 h-5 text-indigo-500/30 mx-2 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-indigo-500/30 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 )}
@@ -231,7 +249,6 @@ export function ServicesPage() {
           </div>
         </motion.div>
 
-        {/* CTA Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}

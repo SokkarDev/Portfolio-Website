@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { ContactForm } from '../components/ContactForm';
 import { useAppReady } from '../App';
 
-// Lazy load the heavy 3D orb
 const InteractiveOrb = lazy(() => import('../components/InteractiveOrb').then(m => ({ default: m.InteractiveOrb })));
 
 const services = [
@@ -76,7 +75,7 @@ const reviews = [
     name: 'Marcus Johnson',
     company: 'FitLife Coaching',
     avatar: 'MJ',
-    rating: 4,
+    rating: 5,
     text: 'Great communication throughout the project. The landing page captures our brand perfectly and loads incredibly fast. Would definitely work together again.',
   },
   {
@@ -104,7 +103,6 @@ const StarRating = ({ rating }: { rating: number }) => (
   </div>
 );
 
-// Placeholder for the orb while loading
 function OrbPlaceholder() {
   return (
     <div className="w-full h-[320px] relative flex items-center justify-center">
@@ -118,8 +116,6 @@ export function HomePage() {
   const [currentReview, setCurrentReview] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const appReady = useAppReady();
-  
-  // Use appReady from preloader to trigger animations
   const isHydrated = appReady;
 
   useEffect(() => {
@@ -140,7 +136,6 @@ export function HomePage() {
     setCurrentReview((prev) => (prev - 1 + reviews.length) % reviews.length);
   };
 
-  // Slower, smoother animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
@@ -159,12 +154,10 @@ export function HomePage() {
 
   return (
     <div>
-      {/* Hero Section - Text renders immediately, animations are subtle */}
       <section className="min-h-screen relative flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-transparent to-transparent" />
         
         <div className="max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Hero text - renders immediately without waiting for animations */}
           <div className="z-10">
             <motion.h1 
               className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6"
@@ -205,7 +198,6 @@ export function HomePage() {
             </motion.div>
           </div>
           
-          {/* 3D Orb - Only loaded after preloader completes */}
           <div className="hidden lg:block">
             {appReady ? (
               <Suspense fallback={<OrbPlaceholder />}>
@@ -217,7 +209,6 @@ export function HomePage() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -234,7 +225,6 @@ export function HomePage() {
         </motion.div>
       </section>
 
-      {/* Services Section */}
       <section className="py-24 bg-gradient-to-b from-transparent to-purple-900/10">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
@@ -277,131 +267,94 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* About Section */}
       <section className="py-24">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+            transition={{ duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="text-center mb-16"
+          >
+            <span className="text-indigo-400 font-medium mb-4 block">About Me</span>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6">
+              Crafting Digital <span className="gradient-text">Excellence</span>
+            </h2>
+            <p className="text-gray-400 max-w-3xl mx-auto text-lg">
+              I'm Hamza, a passionate web developer based in Egypt who believes that great websites 
+              are born from the perfect blend of creativity, technical expertise, and genuine care for the user experience.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <motion.div
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
+              viewport={{ once: true }}
               variants={fadeInUp}
-              transition={{ duration: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
+              transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="glass-effect rounded-2xl p-6 text-center hover:border-indigo-500/30 transition-all duration-500"
             >
-              <span className="text-indigo-400 font-medium mb-4 block">About Me</span>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">
-                Crafting Digital <span className="gradient-text">Excellence</span>
-              </h2>
-              <p className="text-gray-300 text-lg mb-6 leading-relaxed">
-                I'm Hamza, a passionate web developer based in Egypt who believes that great websites 
-                are born from the perfect blend of <span className="text-white font-medium">creativity</span>, 
-                <span className="text-white font-medium"> technical expertise</span>, and 
-                <span className="text-white font-medium"> genuine care</span> for the user experience.
-              </p>
-              <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                Every project I take on is an opportunity to create something meaningful. I don't just 
-                build websites—I craft digital experiences that help businesses grow and leave lasting impressions.
-              </p>
-              
-              <div className="flex flex-wrap gap-4 mb-8">
-                <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm">
-                  🎯 Detail-Oriented
-                </div>
-                <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm">
-                  ⚡ Performance Focused
-                </div>
-                <div className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm">
-                  💬 Clear Communication
-                </div>
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 flex items-center justify-center">
+                <span className="text-2xl">🎯</span>
               </div>
-
-              <Link
-                to="/services"
-                className="inline-flex items-center text-indigo-400 font-medium hover:text-indigo-300 transition-colors duration-500"
-              >
-                Explore my services
-                <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </Link>
+              <h3 className="text-lg font-semibold mb-2">Detail-Oriented</h3>
+              <p className="text-gray-400 text-sm">Every pixel matters. I obsess over the small details that make a big difference in user experience.</p>
             </motion.div>
 
             <motion.div
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
+              viewport={{ once: true }}
               variants={fadeInUp}
-              transition={{ duration: 0.9, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="relative"
+              transition={{ duration: 0.7, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="glass-effect rounded-2xl p-6 text-center hover:border-indigo-500/30 transition-all duration-500"
             >
-              {/* Abstract decorative element instead of image */}
-              <div className="aspect-square rounded-3xl bg-gradient-to-br from-indigo-500/10 to-purple-600/10 p-8 relative overflow-hidden">
-                {/* Grid pattern */}
-                <div className="absolute inset-0 opacity-20">
-                  <div className="grid grid-cols-6 grid-rows-6 h-full w-full gap-2 p-4">
-                    {[...Array(36)].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        className="rounded-lg bg-gradient-to-br from-indigo-500/30 to-purple-600/30"
-                        initial={{ opacity: 0, scale: 0 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: i * 0.015, ease: "easeOut" }}
-                      />
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Center content */}
-                <div className="relative z-10 h-full flex flex-col items-center justify-center">
-                  <motion.div 
-                    className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-6"
-                    animate={{ 
-                      boxShadow: [
-                        "0 0 30px rgba(99, 102, 241, 0.3)",
-                        "0 0 60px rgba(99, 102, 241, 0.5)",
-                        "0 0 30px rgba(99, 102, 241, 0.3)"
-                      ]
-                    }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <span className="text-5xl font-bold">H</span>
-                  </motion.div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold mb-1">Hamza Sokkar</p>
-                    <p className="text-gray-400">Web Developer</p>
-                  </div>
-                  
-                  {/* Floating elements */}
-                  <motion.div 
-                    className="absolute top-8 right-8 w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 backdrop-blur-sm flex items-center justify-center"
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <span className="text-2xl">💻</span>
-                  </motion.div>
-                  <motion.div 
-                    className="absolute bottom-12 left-8 w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 backdrop-blur-sm flex items-center justify-center"
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                  >
-                    <span className="text-xl">🚀</span>
-                  </motion.div>
-                  <motion.div 
-                    className="absolute top-1/3 left-4 w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500/20 to-indigo-600/20 backdrop-blur-sm flex items-center justify-center"
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                  >
-                    <span className="text-lg">✨</span>
-                  </motion.div>
-                </div>
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 flex items-center justify-center">
+                <span className="text-2xl">⚡</span>
               </div>
+              <h3 className="text-lg font-semibold mb-2">Performance Focused</h3>
+              <p className="text-gray-400 text-sm">Speed is everything. I build lightning-fast websites optimized for the best user experience.</p>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeInUp}
+              transition={{ duration: 0.7, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="glass-effect rounded-2xl p-6 text-center hover:border-indigo-500/30 transition-all duration-500"
+            >
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 flex items-center justify-center">
+                <span className="text-2xl">💬</span>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Clear Communication</h3>
+              <p className="text-gray-400 text-sm">I keep you in the loop at every step, ensuring your vision is perfectly translated into reality.</p>
             </motion.div>
           </div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+            transition={{ duration: 0.9, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="text-center"
+          >
+            <Link
+              to="/services"
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-500"
+            >
+              Explore My Services
+              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+          </motion.div>
         </div>
       </section>
 
-      {/* Reviews Section */}
       <section className="py-24 bg-gradient-to-b from-purple-900/10 to-transparent">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
@@ -418,8 +371,39 @@ export function HomePage() {
             </p>
           </motion.div>
 
-          <div className="relative max-w-4xl mx-auto">
-            {/* Main Review Card */}
+          {/* Mobile: Horizontal Scroll */}
+          <div className="md:hidden">
+            <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6">
+              {reviews.map((review, index) => (
+                <motion.div
+                  key={review.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className="glass-effect rounded-2xl p-6 min-w-[300px] w-[85vw] max-w-[350px] flex-shrink-0 snap-center"
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-bold">{review.avatar}</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-white text-sm">{review.name}</p>
+                      <p className="text-gray-400 text-xs">{review.company}</p>
+                    </div>
+                  </div>
+                  <StarRating rating={review.rating} />
+                  <p className="text-gray-300 text-sm mt-3 leading-relaxed">
+                    "{review.text}"
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+            <p className="text-center text-gray-500 text-xs mt-4">← Swipe to see more →</p>
+          </div>
+
+          {/* Desktop: Carousel */}
+          <div className="hidden md:block relative max-w-4xl mx-auto">
             <div className="relative overflow-hidden">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -431,12 +415,10 @@ export function HomePage() {
                   className="glass-effect rounded-3xl p-8 md:p-12"
                 >
                   <div className="flex flex-col md:flex-row gap-6 items-start">
-                    {/* Avatar */}
                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                       <span className="text-xl font-bold">{reviews[currentReview].avatar}</span>
                     </div>
                     
-                    {/* Content */}
                     <div className="flex-1">
                       <StarRating rating={reviews[currentReview].rating} />
                       <p className="text-gray-300 text-lg mt-4 mb-6 leading-relaxed">
@@ -452,7 +434,6 @@ export function HomePage() {
               </AnimatePresence>
             </div>
 
-            {/* Navigation */}
             <div className="flex items-center justify-between mt-8">
               <button
                 onClick={prevReview}
@@ -463,7 +444,6 @@ export function HomePage() {
                 </svg>
               </button>
 
-              {/* Dots */}
               <div className="flex gap-2">
                 {reviews.map((_, index) => (
                   <button
@@ -494,7 +474,6 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Contact Section */}
       <section id="contact" className="py-24">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">

@@ -177,6 +177,39 @@ Want to know more? Let's chat! 💬`,
 Just scroll down past the hero section and you'll see testimonials from satisfied clients. They share their experience working with me and the results they achieved.
 
 Spoiler: They're pretty happy! ⭐`,
+
+  benefits: `A professional website can transform your business! Here's how I can benefit you:
+
+📈 **Increased Credibility** - Look professional and build trust with customers
+💰 **More Sales/Leads** - Convert visitors into paying customers
+🌍 **24/7 Availability** - Your business is accessible anytime, anywhere
+🔍 **Better Visibility** - SEO optimization helps people find you on Google
+📱 **Mobile Customers** - Reach users on phones and tablets
+⚡ **Competitive Edge** - Stand out from competitors with a modern site
+
+A website is an investment that pays for itself! Want to discuss your goals?`,
+
+  mobile: `Absolutely! **Mobile optimization is included in every project** 📱
+
+Here's what you get:
+• **Responsive Design** - Looks perfect on phones, tablets & desktops
+• **Touch-Friendly** - Easy navigation on touchscreens
+• **Fast Loading** - Optimized for mobile networks
+• **Mobile-First Approach** - I design for mobile users first
+• **Cross-Browser** - Works on Safari, Chrome, Firefox & more
+
+Over 60% of web traffic comes from mobile — your site will be ready! ✨`,
+
+  payment: `I accept multiple payment methods for your convenience! 💳
+
+• **Instapay** - Quick local transfers
+• **PayPal** - International payments
+• **Vodafone Cash** - Mobile wallet
+• **Bank Transfers** - Direct deposits
+
+Payment is typically split into milestones (deposit + final payment). We'll discuss the details based on your project! 
+
+Any questions about payments? Feel free to ask!`,
   
   default: `I'm not quite sure about that specific question, but I'd love to help! 
 
@@ -198,133 +231,280 @@ const quickReplies = [
   { text: "WhatsApp", keyword: "whatsapp" },
 ];
 
+// Normalize text: expand shortcuts and common abbreviations
+function normalizeText(text: string): string {
+  let normalized = text.toLowerCase().trim();
+  
+  // Common shortcuts and abbreviations
+  const shortcuts: { [key: string]: string } = {
+    'u': 'you',
+    'ur': 'your',
+    'r': 'are',
+    'y': 'why',
+    'pls': 'please',
+    'plz': 'please',
+    'thx': 'thanks',
+    'ty': 'thank you',
+    'tysm': 'thank you so much',
+    'bc': 'because',
+    'cuz': 'because',
+    'b4': 'before',
+    'w/': 'with',
+    'w/o': 'without',
+    'abt': 'about',
+    'rn': 'right now',
+    'asap': 'as soon as possible',
+    'msg': 'message',
+    'msgs': 'messages',
+    'info': 'information',
+    'idk': 'i dont know',
+    'imo': 'in my opinion',
+    'fyi': 'for your information',
+    'btw': 'by the way',
+    'dm': 'direct message',
+    'ppl': 'people',
+    'smth': 'something',
+    'sth': 'something',
+    'gonna': 'going to',
+    'wanna': 'want to',
+    'gotta': 'got to',
+    'kinda': 'kind of',
+    'sorta': 'sort of',
+    'lemme': 'let me',
+    'gimme': 'give me',
+    'howdy': 'hello',
+    'hru': 'how are you',
+    'wbu': 'what about you',
+    'ik': 'i know',
+    'nvm': 'never mind',
+    'omw': 'on my way',
+    'tbh': 'to be honest',
+    'tho': 'though',
+    'coz': 'because',
+    'cos': 'because',
+    'wat': 'what',
+    'wut': 'what',
+    'dis': 'this',
+    'dat': 'that',
+    'dem': 'them',
+    'da': 'the',
+    'n': 'and',
+    '&': 'and',
+    'yr': 'your',
+    'yrs': 'years',
+    'hrs': 'hours',
+    'mins': 'minutes',
+    'secs': 'seconds',
+    'approx': 'approximately',
+    'esp': 'especially',
+    'govt': 'government',
+    'dev': 'developer',
+    'devs': 'developers',
+    'biz': 'business',
+    'mgmt': 'management',
+    'mkt': 'market',
+    'amt': 'amount',
+    'qty': 'quantity',
+    'req': 'require',
+    'reqs': 'requirements',
+    'specs': 'specifications',
+    'tech': 'technology',
+    'diff': 'difference',
+    'prob': 'probably',
+    'probs': 'problems',
+    'obv': 'obviously',
+    'def': 'definitely',
+    'thnk': 'think',
+    'cn': 'can',
+    'shud': 'should',
+    'cud': 'could',
+    'wud': 'would',
+    'hv': 'have',
+    'dnt': 'dont',
+    'cnt': 'cant',
+    'isnt': 'is not',
+    'arent': 'are not',
+    'wasnt': 'was not',
+    'werent': 'were not',
+    'doesnt': 'does not',
+    'didnt': 'did not',
+    'wont': 'will not',
+    'cant': 'can not',
+    'shouldnt': 'should not',
+    'couldnt': 'could not',
+    'wouldnt': 'would not',
+    'havent': 'have not',
+    'hasnt': 'has not',
+    'hadnt': 'had not',
+  };
+  
+  // Replace shortcuts with full words (word boundaries)
+  Object.entries(shortcuts).forEach(([short, full]) => {
+    const regex = new RegExp(`\\b${short}\\b`, 'gi');
+    normalized = normalized.replace(regex, full);
+  });
+  
+  return normalized;
+}
+
 function getResponse(message: string): string {
-  const lowerMessage = message.toLowerCase();
+  const originalMessage = message.toLowerCase().trim();
+  const normalizedMessage = normalizeText(message);
+  
+  // Helper function to check if message matches any patterns
+  const matchesAny = (patterns: string[]): boolean => {
+    return patterns.some(pattern => {
+      const lowerPattern = pattern.toLowerCase();
+      // Check in both original and normalized message
+      return originalMessage.includes(lowerPattern) || normalizedMessage.includes(lowerPattern);
+    });
+  };
   
   // Greetings
-  if (/^(hello|hi|hey|hola|greetings|yo|sup)[\s!?.]*$/i.test(message) || (lowerMessage.includes('start') && lowerMessage.length < 15)) {
+  if (/^(hello|hi|hey|hola|greetings|yo|sup|howdy|what's up|whats up|hii|hiii|heya|hiya|ello|wassup|wazzup|wsg)[\\s!?.]*$/i.test(message) || 
+      (normalizedMessage.includes('start') && normalizedMessage.length < 15)) {
     return botResponses.greeting;
   }
   
+  // Payment methods
+  if (matchesAny(['pay', 'payment', 'instapay', 'paypal', 'vodafone cash', 'bank transfer', 'how do i pay', 'how can i pay', 'how to pay', 'send money', 'transfer money', 'accept money', 'receive payment', 'payment method', 'pay you', 'paying', 'transaction', 'wire', 'cash', 'platform do you take', 'take the money', 'get paid', 'get the money', 'money from', 'send you money', 'give you money'])) {
+    return botResponses.payment;
+  }
+  
+  // Benefits / Value
+  if (matchesAny(['benefit', 'help me', 'help my business', 'why do i need', 'why should i', 'what will', 'what can a website do', 'what does a website do', 'advantage', 'value', 'worth it', 'why website', 'need a website', 'website do for me', 'how can you help', 'what do i get', 'why hire', 'roi', 'return on investment', 'grow my business', 'improve my business', 'boost my business', 'benefit me', 'benefit my', 'good for me', 'good for my'])) {
+    return botResponses.benefits;
+  }
+  
+  // Mobile optimization
+  if (matchesAny(['mobile', 'responsive', 'phone', 'tablet', 'iphone', 'android', 'smartphone', 'mobile friendly', 'mobile optimized', 'mobile optimization', 'work on mobile', 'work on phone', 'look on phone', 'look on mobile', 'support mobile', 'mobile support', 'mobile version', 'phone version', 'small screen', 'touch screen', 'touchscreen', 'portable', 'handheld'])) {
+    return botResponses.mobile;
+  }
+  
   // Services
-  if (lowerMessage.includes('service') || lowerMessage.includes('offer') || lowerMessage.includes('what do you do') || lowerMessage.includes('what can you')) {
+  if (matchesAny(['service', 'offer', 'what do you do', 'what can you', 'what you do', 'your work', 'help me with', 'can you do', 'do you do', 'provide', 'specialize', 'expertise', 'what are your', 'what services'])) {
     return botResponses.services;
   }
   
-  // Pricing
-  if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('how much') || lowerMessage.includes('budget') || lowerMessage.includes('quote') || lowerMessage.includes('pricing') || lowerMessage.includes('rate') || lowerMessage.includes('charge') || lowerMessage.includes('fee')) {
+  // Pricing (but not payment)
+  if (matchesAny(['price', 'cost', 'how much', 'budget', 'quote', 'pricing', 'rate', 'charge', 'fee', 'expensive', 'cheap', 'affordable', 'invest', 'investment', 'worth', 'estimate', 'ballpark']) && !matchesAny(['pay', 'instapay', 'paypal', 'vodafone', 'bank'])) {
     return botResponses.pricing;
   }
   
   // Packages
-  if (lowerMessage.includes('package') || lowerMessage.includes('bundle') || lowerMessage.includes('plan')) {
+  if (matchesAny(['package', 'bundle', 'plan', 'tier', 'option', 'combo', 'deal'])) {
     return botResponses.packages;
   }
   
-  // Process / Workflow
-  if (lowerMessage.includes('process') || lowerMessage.includes('how do you work') || lowerMessage.includes('workflow') || lowerMessage.includes('steps') || lowerMessage.includes('how does it work')) {
+  // Process/Workflow
+  if (matchesAny(['process', 'how do you work', 'workflow', 'steps', 'how does it work', 'how it work', 'methodology', 'approach', 'procedure', 'way you work', 'working style', 'collaborate', 'collaboration', 'how you work'])) {
     return botResponses.process;
   }
   
-  // Timeline
-  if (lowerMessage.includes('time') || lowerMessage.includes('long') || lowerMessage.includes('deadline') || lowerMessage.includes('duration') || lowerMessage.includes('week') || lowerMessage.includes('days') || lowerMessage.includes('fast') || lowerMessage.includes('quick')) {
+  // Timeline/Duration
+  if (matchesAny(['time', 'long', 'deadline', 'duration', 'week', 'days', 'fast', 'quick', 'deliver', 'delivery', 'when can', 'how soon', 'turnaround', 'complete', 'finish', 'done', 'ready', 'urgent', 'rush', 'asap', 'speed', 'eta', 'timeframe', 'time frame', 'schedule', 'when will', 'when do', 'when would', 'takes to', 'take to build'])) {
     return botResponses.timeline;
   }
   
   // Revisions
-  if (lowerMessage.includes('revision') || lowerMessage.includes('change') || lowerMessage.includes('edit') || lowerMessage.includes('modify') || lowerMessage.includes('update') || lowerMessage.includes('fix')) {
+  if (matchesAny(['revision', 'change', 'edit', 'modify', 'update', 'fix', 'tweak', 'adjust', 'alteration', 'correction', 'redo', 'undo', 'not happy', 'dont like', "don't like", 'satisfied', 'not satisfied', 'changes'])) {
     return botResponses.revisions;
   }
   
-  // Domain
-  if (lowerMessage.includes('domain') || lowerMessage.includes('url') || lowerMessage.includes('hosting') || lowerMessage.includes('host')) {
+  // Domain/Hosting
+  if (matchesAny(['domain', 'url', 'hosting', 'host', 'server', 'dns', 'ssl', 'website address', 'web address', '.com', 'godaddy', 'namecheap', 'deploy', 'deployment', 'live', 'online', 'publish'])) {
     return botResponses.domain;
   }
   
   // Getting Started
-  if (lowerMessage.includes('get started') || lowerMessage.includes('begin') || lowerMessage.includes('how do i start') || lowerMessage.includes('next step') || lowerMessage.includes('hire') || lowerMessage.includes('work with you')) {
+  if (matchesAny(['get started', 'begin', 'how do i start', 'how can i start', 'how to start', 'how i start', 'can i start', 'to start', 'next step', 'hire', 'work with you', 'work together', 'start project', 'new project', 'kick off', 'initiate', 'commence', 'lets go', "let's go", 'ready to', 'want to start', 'interested', 'sign up', 'onboard', 'onboarding', 'first step', 'where do i start', 'how to begin', 'start working', 'starting', 'get start', 'wanna start', 'want start', 'like to start', 'need to start', 'start now', 'begin now', 'start a project', 'begin a project', 'starting a project'])) {
     return botResponses.started;
   }
   
   // Contact (general)
-  if ((lowerMessage.includes('contact') && !lowerMessage.includes('form')) || lowerMessage.includes('email') || lowerMessage.includes('phone') || lowerMessage.includes('reach you') || lowerMessage.includes('get in touch')) {
+  if (matchesAny(['contact', 'email', 'reach you', 'get in touch', 'touch with you', 'talk to you', 'speak with', 'call you', 'how can we talk', 'communicate', 'connect', 'connection', 'reach out', 'get hold', 'available', 'contact you', 'how to contact', 'ways to contact', 'how we talk', 'talk with you', 'speak to you', 'get to you'])) {
+    if (normalizedMessage.includes('form')) {
+      return botResponses.form;
+    }
     return botResponses.contact;
   }
   
-  // WhatsApp specific
-  if (lowerMessage.includes('whatsapp') || lowerMessage.includes('whats app') || lowerMessage.includes('message you') || (lowerMessage.includes('chat') && !lowerMessage.includes('chatbot')) || lowerMessage.includes('green button') || lowerMessage.includes('text you')) {
+  // WhatsApp
+  if (matchesAny(['whatsapp', 'whats app', 'message you', 'green button', 'text you', 'dm', 'direct message', 'instant message', 'messenger', 'sms', 'wa', 'whatapp']) || 
+      (normalizedMessage.includes('chat') && !normalizedMessage.includes('chatbot') && !normalizedMessage.includes('chat bot'))) {
     return botResponses.whatsapp;
   }
   
-  // Form specific
-  if (lowerMessage.includes('form') || lowerMessage.includes('fill') || lowerMessage.includes('submit') || lowerMessage.includes('send message')) {
+  // Form
+  if (matchesAny(['form', 'fill', 'submit', 'send message', 'inquiry', 'enquiry', 'write to', 'fill out', 'fill in'])) {
     return botResponses.form;
   }
   
   // Navigation
-  if (lowerMessage.includes('navigate') || lowerMessage.includes('menu') || lowerMessage.includes('page') || lowerMessage.includes('where') || lowerMessage.includes('find') || lowerMessage.includes('go to')) {
+  if (matchesAny(['navigate', 'menu', 'page', 'where', 'find', 'go to', 'look for', 'looking for', 'locate', 'section', 'how to use', 'website work', 'site work', 'use this site', 'use the website', 'find the'])) {
     return botResponses.navigation;
   }
   
   // Technologies
-  if (lowerMessage.includes('tech') || lowerMessage.includes('stack') || lowerMessage.includes('framework') || lowerMessage.includes('language') || lowerMessage.includes('react') || lowerMessage.includes('next') || lowerMessage.includes('built with') || lowerMessage.includes('use')) {
+  if (matchesAny(['tech', 'stack', 'framework', 'language', 'react', 'next', 'built with', 'tools', 'software', 'platform', 'wordpress', 'html', 'css', 'javascript', 'typescript', 'node', 'code', 'coding', 'programming', 'develop with', 'technology', 'what do you use', 'technologies'])) {
     return botResponses.technologies;
   }
   
-  // Shopify / E-commerce
-  if (lowerMessage.includes('shopify') || lowerMessage.includes('ecommerce') || lowerMessage.includes('e-commerce') || lowerMessage.includes('online store') || lowerMessage.includes('shop') || lowerMessage.includes('sell online') || lowerMessage.includes('products')) {
+  // Shopify/E-commerce
+  if (matchesAny(['shopify', 'ecommerce', 'e-commerce', 'online store', 'shop', 'sell online', 'products', 'store', 'cart', 'checkout', 'woocommerce', 'magento', 'selling', 'merchant', 'inventory', 'orders', 'sell stuff', 'sell things'])) {
     return botResponses.shopify;
   }
   
   // Redesign
-  if (lowerMessage.includes('redesign') || lowerMessage.includes('rebuild') || lowerMessage.includes('improve') || lowerMessage.includes('existing') || lowerMessage.includes('already have') || lowerMessage.includes('current website') || lowerMessage.includes('old website') || lowerMessage.includes('makeover')) {
+  if (matchesAny(['redesign', 'rebuild', 'improve', 'existing', 'already have', 'current website', 'old website', 'makeover', 'revamp', 'refresh', 'modernize', 'upgrade', 'outdated', 'update my', 'redo my', 'new look', 'facelift', 'renovation', 'have a website', 'existing site', 'my current'])) {
     return botResponses.redesign;
   }
   
-  // Remote / Location
-  if (lowerMessage.includes('remote') || lowerMessage.includes('location') || lowerMessage.includes('egypt') || lowerMessage.includes('worldwide') || lowerMessage.includes('country') || lowerMessage.includes('international') || lowerMessage.includes('timezone')) {
+  // Remote/Location
+  if (matchesAny(['remote', 'location', 'egypt', 'worldwide', 'country', 'international', 'timezone', 'time zone', 'where are you', 'based', 'located', 'from where', 'geography', 'distance', 'abroad', 'overseas', 'global', 'local', 'your location', 'work from', 'where do you'])) {
     return botResponses.remote;
   }
   
-  // Projects / Portfolio
-  if (lowerMessage.includes('project') || lowerMessage.includes('portfolio') || lowerMessage.includes('example') || lowerMessage.includes('work') || lowerMessage.includes('previous') || lowerMessage.includes('show me') || lowerMessage.includes('sample')) {
+  // Projects/Portfolio
+  if (matchesAny(['project', 'portfolio', 'example', 'previous', 'show me', 'sample', 'case study', 'past work', 'done before', 'experience', 'clients', 'built', 'created', 'made', 'showcase', 'gallery', 'proof', 'demonstrate', 'your work', 'see your work', 'examples of'])) {
     return botResponses.projects;
   }
   
   // About
-  if (lowerMessage.includes('about') || lowerMessage.includes('who are you') || lowerMessage.includes('who is') || lowerMessage.includes('hamza') || lowerMessage.includes('sokkar') || lowerMessage.includes('yourself') || lowerMessage.includes('background')) {
+  if (matchesAny(['about', 'who are you', 'who is', 'hamza', 'sokkar', 'yourself', 'background', 'bio', 'biography', 'story', 'history', 'introduce', 'introduction', 'tell me about', 'developer', 'designer', 'founder', 'owner', 'about you', 'who you are'])) {
     return botResponses.about;
   }
   
-  // Reviews / Testimonials
-  if (lowerMessage.includes('review') || lowerMessage.includes('testimonial') || lowerMessage.includes('feedback') || lowerMessage.includes('client') || lowerMessage.includes('rating') || lowerMessage.includes('star')) {
+  // Reviews
+  if (matchesAny(['review', 'testimonial', 'feedback', 'rating', 'star', 'reputation', 'trust', 'reliable', 'recommend', 'recommendation', 'opinion', 'what people say', 'what others say', 'satisfied customers', 'happy clients', 'reviews', 'testimonials'])) {
     return botResponses.reviews;
   }
   
-  // Button locations
-  if (lowerMessage.includes('button') || lowerMessage.includes('bottom left') || lowerMessage.includes('bottom right') || lowerMessage.includes('corner')) {
-    if (lowerMessage.includes('whatsapp') || lowerMessage.includes('green') || lowerMessage.includes('left')) {
+  // Buttons help
+  if (matchesAny(['button', 'bottom left', 'bottom right', 'corner', 'icon', 'floating'])) {
+    if (normalizedMessage.includes('whatsapp') || normalizedMessage.includes('green') || normalizedMessage.includes('left')) {
       return botResponses.whatsapp;
     }
     return "There are a few buttons you might be looking for:\n\n💚 **WhatsApp button** - Green button on the **bottom left** corner\n💬 **Chat button** - Purple button on the **bottom right** (that opened this chat!)\n📝 **Contact form** - Scroll down on homepage or go to Contact page";
   }
   
-  // Thank you responses
-  if (lowerMessage.includes('thank') || lowerMessage.includes('thanks') || lowerMessage.includes('thx') || lowerMessage.includes('appreciate')) {
+  // Thanks
+  if (matchesAny(['thank', 'thanks', 'thx', 'appreciate', 'grateful', 'cheers', 'awesome', 'great', 'perfect', 'helpful', 'amazing', 'wonderful', 'fantastic', 'excellent', 'nice', 'cool', 'good job', 'well done', 'ty', 'tysm'])) {
     return "You're welcome! 😊 Is there anything else you'd like to know? I'm happy to help!";
   }
   
-  // Bye responses
-  if (lowerMessage.includes('bye') || lowerMessage.includes('goodbye') || lowerMessage.includes('see you') || lowerMessage.includes('later')) {
+  // Goodbye
+  if (matchesAny(['bye', 'goodbye', 'see you', 'later', 'take care', 'gotta go', 'leaving', 'cya', 'peace', 'gtg', 'im out', "i'm out", 'catch you later', 'ttyl', 'talk later'])) {
     return "Goodbye! 👋 Feel free to come back anytime you have questions. Good luck with your project!";
   }
   
-  // Yes/No responses
-  if (/^(yes|yeah|yep|sure|ok|okay)[\s!?.]*$/i.test(message)) {
+  // Yes responses
+  if (/^(yes|yeah|yep|sure|ok|okay|yup|absolutely|definitely|of course|certainly|ye|ya|yea|yas|yass|alright|aight|k|kk|okie|oki)[\\s!?.]*$/i.test(message)) {
     return "Great! What would you like to know more about? Feel free to ask about services, pricing, timeline, or anything else!";
   }
   
-  if (/^(no|nope|nah)[\s!?.]*$/i.test(message)) {
+  // No responses
+  if (/^(no|nope|nah|not really|no thanks|no thank you|na|naw|negative)[\\s!?.]*$/i.test(message)) {
     return "No problem! If you have any questions later, I'm here to help. You can also reach out via WhatsApp or the contact form! 😊";
   }
   
@@ -375,7 +555,6 @@ export default function ChatBot() {
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate typing delay
     setTimeout(() => {
       const botMessage: Message = {
         id: Date.now() + 1,
@@ -397,7 +576,6 @@ export default function ChatBot() {
 
   const formatMessage = (text: string) => {
     return text.split('\n').map((line, i) => {
-      // Bold text
       const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       return (
         <span key={i} dangerouslySetInnerHTML={{ __html: formattedLine }} />
@@ -410,7 +588,6 @@ export default function ChatBot() {
 
   return (
     <>
-      {/* WhatsApp Button - Bottom Left, Smaller */}
       <motion.a
         href={WHATSAPP_URL}
         target="_blank"
@@ -426,7 +603,6 @@ export default function ChatBot() {
         </svg>
       </motion.a>
 
-      {/* Chat Button - Bottom Right */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-purple-500/30 flex items-center justify-center hover:shadow-purple-500/50 transition-shadow duration-500"
@@ -468,7 +644,6 @@ export default function ChatBot() {
           )}
         </AnimatePresence>
         
-        {/* Notification dot */}
         {!isOpen && (
           <motion.span
             className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-black"
@@ -479,7 +654,6 @@ export default function ChatBot() {
         )}
       </motion.button>
 
-      {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -489,7 +663,6 @@ export default function ChatBot() {
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="fixed bottom-24 right-6 z-50 w-[350px] h-[500px] max-h-[70vh] bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl shadow-purple-500/10 flex flex-col overflow-hidden"
           >
-            {/* Header */}
             <div className="p-4 border-b border-white/10 bg-gradient-to-r from-indigo-600/20 to-purple-600/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
@@ -505,7 +678,6 @@ export default function ChatBot() {
               </div>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10">
               {messages.map((message) => (
                 <motion.div
@@ -527,7 +699,6 @@ export default function ChatBot() {
                 </motion.div>
               ))}
               
-              {/* Typing indicator */}
               {isTyping && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -559,7 +730,6 @@ export default function ChatBot() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick Replies */}
             {messages.length <= 2 && (
               <div className="px-4 pb-2">
                 <div className="flex flex-wrap gap-2">
@@ -578,7 +748,6 @@ export default function ChatBot() {
               </div>
             )}
 
-            {/* Input */}
             <div className="p-4 border-t border-white/10 bg-black/30">
               <div className="flex gap-2">
                 <input

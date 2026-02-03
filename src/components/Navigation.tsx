@@ -17,7 +17,6 @@ export function Navigation() {
     <nav className="fixed top-0 left-0 right-0 z-50 glass-effect">
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-1 group">
             <span className="text-2xl font-bold tracking-tight">
               <span className="text-white">Sokkar</span>
@@ -30,7 +29,6 @@ export function Navigation() {
             />
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
@@ -54,7 +52,6 @@ export function Navigation() {
             ))}
           </div>
 
-          {/* CTA Button */}
           <Link
             to="/contact"
             className="hidden md:block px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-500"
@@ -62,7 +59,6 @@ export function Navigation() {
             Let's Talk
           </Link>
 
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden text-white p-2"
@@ -78,7 +74,6 @@ export function Navigation() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div

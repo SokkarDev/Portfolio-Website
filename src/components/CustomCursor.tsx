@@ -8,14 +8,12 @@ export default function CustomCursor() {
   const [isClicking, setIsClicking] = useState(false);
   
   useEffect(() => {
-    // Don't show custom cursor on touch devices
     if ('ontouchstart' in window) return;
     
     const updatePosition = (e: MouseEvent) => {
       setPosition({ x: e.clientX, y: e.clientY });
       setIsHidden(false);
       
-      // Check if hovering over clickable element
       const target = e.target as HTMLElement;
       const isClickable = 
         target.tagName === 'A' ||
@@ -42,10 +40,7 @@ export default function CustomCursor() {
     document.documentElement.addEventListener('mouseleave', handleMouseLeave);
     document.documentElement.addEventListener('mouseenter', handleMouseEnter);
     
-    // Hide default cursor
     document.body.style.cursor = 'none';
-    
-    // Add global style to hide cursor on all elements
     const style = document.createElement('style');
     style.id = 'custom-cursor-style';
     style.textContent = '*, *::before, *::after { cursor: none !important; }';
@@ -62,14 +57,12 @@ export default function CustomCursor() {
     };
   }, []);
   
-  // Don't render on touch devices
   if (typeof window !== 'undefined' && 'ontouchstart' in window) {
     return null;
   }
   
   return (
     <>
-      {/* Main cursor blob - bright gradient */}
       <motion.div
         className="fixed top-0 left-0 pointer-events-none z-[9999]"
         animate={{
@@ -100,7 +93,6 @@ export default function CustomCursor() {
         />
       </motion.div>
       
-      {/* Inner bright core */}
       <motion.div
         className="fixed top-0 left-0 pointer-events-none z-[9999]"
         animate={{
@@ -126,7 +118,6 @@ export default function CustomCursor() {
         />
       </motion.div>
       
-      {/* Outer ring on hover - bright */}
       <motion.div
         className="fixed top-0 left-0 pointer-events-none z-[9997]"
         animate={{

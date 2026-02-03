@@ -6,20 +6,17 @@ import { Preloader } from './components/Preloader';
 import ChatBot from './components/ChatBot';
 import CustomCursor from './components/CustomCursor';
 
-// Create context to signal when app is ready for heavy initialization
 export const AppReadyContext = createContext(false);
 
 export function useAppReady() {
   return useContext(AppReadyContext);
 }
 
-// Lazy load pages for better initial load
 const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
 const ServicesPage = lazy(() => import('./pages/ServicesPage').then(m => ({ default: m.ServicesPage })));
 const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 
-// Minimal loading fallback - just empty space to prevent layout shift
 function PageLoader() {
   return <div className="min-h-screen" />;
 }
@@ -52,10 +49,7 @@ function AppContent({ isReady }: { isReady: boolean }) {
         </main>
         <Footer />
         
-        {/* AI Chat Assistant */}
         {isReady && <ChatBot />}
-        
-        {/* Custom Cursor */}
         {isReady && <CustomCursor />}
       </div>
     </AppReadyContext.Provider>
@@ -64,15 +58,11 @@ function AppContent({ isReady }: { isReady: boolean }) {
 
 export function App() {
   const [appReady, setAppReady] = useState(false);
-
-  // Check if we should skip preloader (already loaded this session)
   const [skipPreloader] = useState(() => {
     return sessionStorage.getItem('sokkar-loaded') === 'true';
   });
 
   const handlePreloaderComplete = () => {
-    // Small delay before initializing heavy components
-    // This ensures smooth transition after preloader fades
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         setAppReady(true);
@@ -80,7 +70,6 @@ export function App() {
     });
   };
 
-  // If skipping preloader, mark as ready immediately
   useEffect(() => {
     if (skipPreloader) {
       setAppReady(true);
@@ -89,10 +78,7 @@ export function App() {
 
   return (
     <Router>
-      {/* Preloader overlay */}
       {!skipPreloader && <Preloader onComplete={handlePreloaderComplete} />}
-      
-      {/* Main app content - always rendered but heavy stuff waits for appReady */}
       <AppContent isReady={appReady} />
     </Router>
   );
