@@ -11,17 +11,145 @@ interface Message {
 const WHATSAPP_NUMBER = '+201118777654';
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER.replace(/[^0-9]/g, '')}`;
 
+// Normalize text - expand shortcuts and common abbreviations
+function normalizeText(text: string): string {
+  const shortcuts: { [key: string]: string } = {
+    'u': 'you', 'ur': 'your', 'r': 'are', 'y': 'why', 'w': 'with',
+    'b': 'be', 'n': 'and', 'k': 'okay', 'ok': 'okay', 'pls': 'please',
+    'plz': 'please', 'thx': 'thanks', 'ty': 'thank you', 'bc': 'because',
+    'cuz': 'because', 'coz': 'because', 'idk': 'i do not know',
+    'idc': 'i do not care', 'imo': 'in my opinion', 'tbh': 'to be honest',
+    'rn': 'right now', 'asap': 'as soon as possible', 'btw': 'by the way',
+    'fyi': 'for your information', 'lmk': 'let me know', 'hmu': 'hit me up',
+    'msg': 'message', 'txt': 'text', 'info': 'information', 'abt': 'about',
+    'w/': 'with', 'w/o': 'without', 'b4': 'before', '2': 'to', '4': 'for',
+    'gr8': 'great', 'm8': 'mate', 'l8': 'late', 'l8r': 'later',
+    'wanna': 'want to', 'gonna': 'going to', 'gotta': 'got to',
+    'kinda': 'kind of', 'sorta': 'sort of', 'outta': 'out of',
+    'coulda': 'could have', 'shoulda': 'should have', 'woulda': 'would have',
+    'aint': 'is not', 'cant': 'cannot', 'dont': 'do not', 'wont': 'will not',
+    'didnt': 'did not', 'doesnt': 'does not', 'isnt': 'is not',
+    'wasnt': 'was not', 'werent': 'were not', 'havent': 'have not',
+    'hasnt': 'has not', 'hadnt': 'had not', 'wouldnt': 'would not',
+    'couldnt': 'could not', 'shouldnt': 'should not', 'mustnt': 'must not',
+    'whats': 'what is', 'thats': 'that is', 'heres': 'here is',
+    'theres': 'there is', 'wheres': 'where is', 'hows': 'how is',
+    'whos': 'who is', 'whens': 'when is', 'whys': 'why is',
+    'im': 'i am', 'ive': 'i have', 'id': 'i would', 'ill': 'i will',
+    'youre': 'you are', 'youve': 'you have', 'youd': 'you would', 'youll': 'you will',
+    'hes': 'he is', 'shes': 'she is', 'its': 'it is', 'theyre': 'they are',
+    'weve': 'we have', 'theyve': 'they have', 'wed': 'we would',
+    'dev': 'developer', 'devs': 'developers', 'biz': 'business',
+    'tech': 'technology', 'govt': 'government', 'mgmt': 'management',
+    'yrs': 'years', 'yr': 'year', 'mo': 'month', 'mos': 'months',
+    'hr': 'hour', 'hrs': 'hours', 'min': 'minute', 'mins': 'minutes',
+    'sec': 'second', 'secs': 'seconds', 'approx': 'approximately',
+    'est': 'estimated', 'amt': 'amount', 'qty': 'quantity',
+    'sm': 'small', 'med': 'medium', 'lg': 'large', 'xl': 'extra large',
+    'fb': 'facebook', 'ig': 'instagram', 'tw': 'twitter', 'li': 'linkedin',
+    'yt': 'youtube', 'wp': 'wordpress', 'js': 'javascript', 'ts': 'typescript',
+    'exp': 'experience', 'xp': 'experience', 'xperience': 'experience',
+  };
+  
+  let normalized = text.toLowerCase().trim();
+  
+  // Handle word boundaries for shortcuts
+  Object.keys(shortcuts).forEach(shortcut => {
+    const regex = new RegExp(`\\b${shortcut}\\b`, 'gi');
+    normalized = normalized.replace(regex, shortcuts[shortcut]);
+  });
+  
+  return normalized;
+}
+
+// Calculate similarity between two strings (Levenshtein-based)
+function similarity(s1: string, s2: string): number {
+  const longer = s1.length > s2.length ? s1 : s2;
+  const shorter = s1.length > s2.length ? s2 : s1;
+  
+  if (longer.length === 0) return 1.0;
+  
+  const costs: number[] = [];
+  for (let i = 0; i <= shorter.length; i++) {
+    let lastValue = i;
+    for (let j = 0; j <= longer.length; j++) {
+      if (i === 0) {
+        costs[j] = j;
+      } else if (j > 0) {
+        let newValue = costs[j - 1];
+        if (shorter[i - 1] !== longer[j - 1]) {
+          newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+        }
+        costs[j - 1] = lastValue;
+        lastValue = newValue;
+      }
+    }
+    if (i > 0) costs[longer.length] = lastValue;
+  }
+  
+  return (longer.length - costs[longer.length]) / longer.length;
+}
+
+// Check if any keyword/phrase matches
+function matchesAny(text: string, patterns: string[]): boolean {
+  const normalizedText = normalizeText(text);
+  
+  for (const pattern of patterns) {
+    const normalizedPattern = normalizeText(pattern);
+    
+    // Direct inclusion
+    if (normalizedText.includes(normalizedPattern)) return true;
+    
+    // Word-by-word fuzzy matching for short phrases
+    const patternWords = normalizedPattern.split(' ');
+    const textWords = normalizedText.split(' ');
+    
+    // Check if all pattern words appear (with fuzzy matching)
+    let allWordsFound = true;
+    for (const pWord of patternWords) {
+      if (pWord.length < 3) continue; // Skip very short words
+      
+      let wordFound = false;
+      for (const tWord of textWords) {
+        if (similarity(pWord, tWord) > 0.8) {
+          wordFound = true;
+          break;
+        }
+      }
+      if (!wordFound && pWord.length > 3) {
+        allWordsFound = false;
+        break;
+      }
+    }
+    if (allWordsFound && patternWords.filter(w => w.length > 3).length > 0) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
 const botResponses: { [key: string]: string } = {
-  greeting: "Hey there! 👋 I'm Sokkar.Dev's assistant. I can help you with questions about services, pricing, how to get started, or anything else about the website. What would you like to know?",
+  greeting: "Hey there! 👋 I'm Sokkar.Dev's assistant. I can help you with questions about services, pricing, experience, how to get started, or anything else. What would you like to know?",
   
   services: `I offer professional web development services including:
 
 • **New Website Development** - Custom websites built from scratch with modern technologies
 • **Website Redesign** - Transform your existing site into something modern, fast & stunning
-• **E-commerce** - Online stores (including Shopify) that convert visitors into customers
+• **E-commerce & Shopify** - Online stores that convert visitors into customers
 • **Landing Pages** - High-converting pages for campaigns & product launches
 
 Would you like more details about any specific service?`,
+  
+  experience: `I have **3+ years of professional web development experience**! 🚀
+
+During this time, I've:
+• Built various websites including business, personal, and e-commerce sites
+• Specialized in e-commerce websites and online stores
+• Became an expert in WordPress and Shopify development
+• Worked with clients from different industries worldwide
+
+I'm constantly learning and staying up-to-date with the latest technologies!`,
   
   pricing: `I don't have fixed pricing — every project is unique! 💡
 
@@ -31,9 +159,40 @@ Want to discuss your project? Fill out the contact form or message me on WhatsAp
   
   packages: `I don't offer pre-made packages — and here's why:
 
-Every business has its own unique goals and challenges. Rather than fitting you into a one-size-fits-all solution, I work closely with you to **build the perfect custom package** that addresses exactly what you need.
+Every business has its own unique goals and challenges. Rather than fitting you into a one-size-fits-all solution, I work closely with you to **build the perfect custom solution** that addresses exactly what you need.
 
 Let's chat about your business goals! Reach out via the contact form or WhatsApp. 📱`,
+  
+  payment: `I accept multiple payment methods for your convenience:
+
+💳 **PayPal** - For international clients
+📱 **Vodafone Cash** - For local payments in Egypt
+🏦 **Instapay** - Fast local bank transfers
+🏛️ **Bank Transfers** - Direct wire transfers
+
+Payment is typically split: 50% upfront to start, 50% upon completion. We can discuss flexible arrangements based on your project!`,
+  
+  benefits: `Great question! Here's what a professional website can do for your business:
+
+📈 **Increased Credibility** - Look professional and trustworthy
+💰 **More Sales & Leads** - Convert visitors into customers 24/7
+🌍 **Wider Reach** - Be accessible to customers worldwide
+📱 **Mobile Customers** - Capture the 60%+ of mobile users
+🔍 **Better Visibility** - Rank higher on Google
+🏆 **Competitive Edge** - Stand out from competitors
+
+A website is your digital storefront that works for you around the clock!`,
+  
+  mobile: `Absolutely! **Mobile optimization is included in every project** I build. 📱
+
+All websites I create are:
+• Fully responsive (works on all screen sizes)
+• Mobile-first designed
+• Touch-friendly navigation
+• Fast-loading on mobile networks
+• Tested on multiple devices
+
+Over 60% of web traffic comes from mobile, so this is non-negotiable for me!`,
   
   process: `Here's how we'll work together:
 
@@ -81,7 +240,7 @@ Once you reach out, I'll personally guide you through every step.`,
   
   contact: `You can reach me through:
 
-📧 **Email:** Hamzasokkardev@gmail.com
+📧 **Email:** hamzasokkardev@gmail.com
 📱 **WhatsApp:** +20 1118777654 (click the green button on the bottom left!)
 📝 **Contact Form:** Available on the Contact page
 
@@ -108,7 +267,7 @@ That's it! I'll get back to you soon. 📬`,
   
   navigation: `Here's how to navigate the website:
 
-🏠 **Home** - Main page with overview, reviews, and contact form
+🏠 **Home** - Main page with about me, projects, skills, and contact
 💼 **Projects** - See my portfolio of completed websites
 🛠️ **Services** - Detailed info about what I offer
 📧 **Contact** - Full contact page with form and info
@@ -118,7 +277,8 @@ Use the menu at the top of the page to navigate!`,
   technologies: `I work with cutting-edge technologies:
 
 • **Frontend:** React, Next.js, TypeScript, Tailwind CSS
-• **E-commerce:** Shopify, WooCommerce
+• **E-commerce:** Shopify, Custom Solutions
+• **Animation:** Framer Motion
 • **Backend:** Node.js, APIs
 • **Performance:** Optimized for speed & SEO
 • **Responsive:** Works perfectly on all devices
@@ -158,353 +318,315 @@ Distance is never an obstacle — I've worked with clients from all over the wor
   
   projects: `You can view my portfolio on the **Projects** page! 
 
-I showcase 4 types of websites:
-• 🏢 **Business** - Corporate/professional websites
-• 👤 **Personal** - Portfolio and personal brand sites
-• 🛒 **E-commerce** - Online stores
-• 🔧 **Service** - Service-based business websites
+Click "Projects" in the top menu or scroll down on the homepage to see featured work including:
+• 💪 Elev8Fitness Gym Website
+• 🛒 E-commerce Fashion Store
+• 🏢 Corporate Business Websites
+• 📸 Creative Portfolio Sites
 
-Click "Projects" in the top menu to see examples!`,
+Each project showcases different skills and industries!`,
   
   about: `I'm **Hamza Sokkar**, a passionate web developer based in Egypt! 
 
-I specialize in creating modern, high-performance websites that help businesses succeed online. I work remotely with clients worldwide and pride myself on clear communication and delivering exceptional results.
+With 3+ years of experience, I specialize in creating modern, high-performance websites that help businesses succeed online. I work remotely with clients worldwide and pride myself on clear communication and delivering exceptional results.
 
-Want to know more? Let's chat! 💬`,
+Want to know more? Check out the About section on the homepage! 💬`,
   
-  reviews: `You can find client reviews on the homepage! 
+  reviews: `You can find client testimonials on the homepage! 
 
-Just scroll down past the hero section and you'll see testimonials from satisfied clients. They share their experience working with me and the results they achieved.
+Just scroll down past the projects section and you'll see feedback from satisfied clients. They share their experience working with me and the results they achieved.
 
 Spoiler: They're pretty happy! ⭐`,
+  
+  skills: `My main skills and technologies include:
 
-  benefits: `A professional website can transform your business! Here's how I can benefit you:
+**Frontend (Advanced):**
+React, TypeScript, Next.js, Tailwind CSS, Framer Motion
 
-📈 **Increased Credibility** - Look professional and build trust with customers
-💰 **More Sales/Leads** - Convert visitors into paying customers
-🌍 **24/7 Availability** - Your business is accessible anytime, anywhere
-🔍 **Better Visibility** - SEO optimization helps people find you on Google
-📱 **Mobile Customers** - Reach users on phones and tablets
-⚡ **Competitive Edge** - Stand out from competitors with a modern site
+**Backend & E-commerce:**
+Node.js, Shopify, WordPress, REST APIs
 
-A website is an investment that pays for itself! Want to discuss your goals?`,
+**Tools:**
+Git, Figma, Vercel, VS Code
 
-  mobile: `Absolutely! **Mobile optimization is included in every project** 📱
-
-Here's what you get:
-• **Responsive Design** - Looks perfect on phones, tablets & desktops
-• **Touch-Friendly** - Easy navigation on touchscreens
-• **Fast Loading** - Optimized for mobile networks
-• **Mobile-First Approach** - I design for mobile users first
-• **Cross-Browser** - Works on Safari, Chrome, Firefox & more
-
-Over 60% of web traffic comes from mobile — your site will be ready! ✨`,
-
-  payment: `I accept multiple payment methods for your convenience! 💳
-
-• **Instapay** - Quick local transfers
-• **PayPal** - International payments
-• **Vodafone Cash** - Mobile wallet
-• **Bank Transfers** - Direct deposits
-
-Payment is typically split into milestones (deposit + final payment). We'll discuss the details based on your project! 
-
-Any questions about payments? Feel free to ask!`,
+Check out the Skills section on the homepage for the full list!`,
   
   default: `I'm not quite sure about that specific question, but I'd love to help! 
 
 Here's what I can help you with:
 • **Services** - What I offer
+• **Experience** - My background (3+ years!)
 • **Pricing** - How pricing works
+• **Payment** - How to pay me
 • **Timeline** - How long projects take
 • **Getting Started** - How to begin
 • **Contact** - Ways to reach me
-• **Navigation** - How to use this website
 
 What would you like to know?`
 };
 
 const quickReplies = [
   { text: "Services", keyword: "services" },
+  { text: "Experience", keyword: "experience" },
   { text: "Pricing", keyword: "pricing" },
   { text: "Get Started", keyword: "started" },
-  { text: "WhatsApp", keyword: "whatsapp" },
 ];
 
-// Normalize text: expand shortcuts and common abbreviations
-function normalizeText(text: string): string {
-  let normalized = text.toLowerCase().trim();
-  
-  // Common shortcuts and abbreviations
-  const shortcuts: { [key: string]: string } = {
-    'u': 'you',
-    'ur': 'your',
-    'r': 'are',
-    'y': 'why',
-    'pls': 'please',
-    'plz': 'please',
-    'thx': 'thanks',
-    'ty': 'thank you',
-    'tysm': 'thank you so much',
-    'bc': 'because',
-    'cuz': 'because',
-    'b4': 'before',
-    'w/': 'with',
-    'w/o': 'without',
-    'abt': 'about',
-    'rn': 'right now',
-    'asap': 'as soon as possible',
-    'msg': 'message',
-    'msgs': 'messages',
-    'info': 'information',
-    'idk': 'i dont know',
-    'imo': 'in my opinion',
-    'fyi': 'for your information',
-    'btw': 'by the way',
-    'dm': 'direct message',
-    'ppl': 'people',
-    'smth': 'something',
-    'sth': 'something',
-    'gonna': 'going to',
-    'wanna': 'want to',
-    'gotta': 'got to',
-    'kinda': 'kind of',
-    'sorta': 'sort of',
-    'lemme': 'let me',
-    'gimme': 'give me',
-    'howdy': 'hello',
-    'hru': 'how are you',
-    'wbu': 'what about you',
-    'ik': 'i know',
-    'nvm': 'never mind',
-    'omw': 'on my way',
-    'tbh': 'to be honest',
-    'tho': 'though',
-    'coz': 'because',
-    'cos': 'because',
-    'wat': 'what',
-    'wut': 'what',
-    'dis': 'this',
-    'dat': 'that',
-    'dem': 'them',
-    'da': 'the',
-    'n': 'and',
-    '&': 'and',
-    'yr': 'your',
-    'yrs': 'years',
-    'hrs': 'hours',
-    'mins': 'minutes',
-    'secs': 'seconds',
-    'approx': 'approximately',
-    'esp': 'especially',
-    'govt': 'government',
-    'dev': 'developer',
-    'devs': 'developers',
-    'biz': 'business',
-    'mgmt': 'management',
-    'mkt': 'market',
-    'amt': 'amount',
-    'qty': 'quantity',
-    'req': 'require',
-    'reqs': 'requirements',
-    'specs': 'specifications',
-    'tech': 'technology',
-    'diff': 'difference',
-    'prob': 'probably',
-    'probs': 'problems',
-    'obv': 'obviously',
-    'def': 'definitely',
-    'thnk': 'think',
-    'cn': 'can',
-    'shud': 'should',
-    'cud': 'could',
-    'wud': 'would',
-    'hv': 'have',
-    'dnt': 'dont',
-    'cnt': 'cant',
-    'isnt': 'is not',
-    'arent': 'are not',
-    'wasnt': 'was not',
-    'werent': 'were not',
-    'doesnt': 'does not',
-    'didnt': 'did not',
-    'wont': 'will not',
-    'cant': 'can not',
-    'shouldnt': 'should not',
-    'couldnt': 'could not',
-    'wouldnt': 'would not',
-    'havent': 'have not',
-    'hasnt': 'has not',
-    'hadnt': 'had not',
-  };
-  
-  // Replace shortcuts with full words (word boundaries)
-  Object.entries(shortcuts).forEach(([short, full]) => {
-    const regex = new RegExp(`\\b${short}\\b`, 'gi');
-    normalized = normalized.replace(regex, full);
-  });
-  
-  return normalized;
-}
-
 function getResponse(message: string): string {
-  const originalMessage = message.toLowerCase().trim();
   const normalizedMessage = normalizeText(message);
   
-  // Helper function to check if message matches any patterns
-  const matchesAny = (patterns: string[]): boolean => {
-    return patterns.some(pattern => {
-      const lowerPattern = pattern.toLowerCase();
-      // Check in both original and normalized message
-      return originalMessage.includes(lowerPattern) || normalizedMessage.includes(lowerPattern);
-    });
-  };
-  
-  // Greetings
-  if (/^(hello|hi|hey|hola|greetings|yo|sup|howdy|what's up|whats up|hii|hiii|heya|hiya|ello|wassup|wazzup|wsg)[\\s!?.]*$/i.test(message) || 
-      (normalizedMessage.includes('start') && normalizedMessage.length < 15)) {
+  // Greeting patterns
+  if (/^(hello|hi|hey|hola|greetings|yo|sup|howdy|good morning|good afternoon|good evening)[\s!?.]*$/i.test(message.trim()) || 
+      (normalizedMessage.includes('start') && normalizedMessage.length < 20 && !normalizedMessage.includes('get') && !normalizedMessage.includes('how'))) {
     return botResponses.greeting;
   }
   
-  // Payment methods
-  if (matchesAny(['pay', 'payment', 'instapay', 'paypal', 'vodafone cash', 'bank transfer', 'how do i pay', 'how can i pay', 'how to pay', 'send money', 'transfer money', 'accept money', 'receive payment', 'payment method', 'pay you', 'paying', 'transaction', 'wire', 'cash', 'platform do you take', 'take the money', 'get paid', 'get the money', 'money from', 'send you money', 'give you money'])) {
+  // Experience questions
+  if (matchesAny(message, [
+    'experience', 'years of experience', 'how long have you been', 'how many years',
+    'how much experience', 'your experience', 'background', 'track record',
+    'how experienced', 'portfolio history', 'work history', 'career',
+    'been doing this', 'been working', 'professional experience', 'in the field',
+    'industry experience', 'expertise level', 'skill level', 'how skilled',
+    'qualifications', 'credentials', 'how good are you'
+  ])) {
+    return botResponses.experience;
+  }
+  
+  // Payment questions
+  if (matchesAny(message, [
+    'pay', 'payment', 'how can i pay', 'how do i pay', 'payment method',
+    'payment options', 'send money', 'transfer money', 'pay you',
+    'paypal', 'vodafone cash', 'instapay', 'bank transfer', 'wire',
+    'accept payment', 'take payment', 'receive payment', 'get paid',
+    'payment platform', 'money transfer', 'how to pay', 'ways to pay',
+    'payment gateway', 'credit card', 'debit card', 'billing'
+  ])) {
     return botResponses.payment;
   }
   
-  // Benefits / Value
-  if (matchesAny(['benefit', 'help me', 'help my business', 'why do i need', 'why should i', 'what will', 'what can a website do', 'what does a website do', 'advantage', 'value', 'worth it', 'why website', 'need a website', 'website do for me', 'how can you help', 'what do i get', 'why hire', 'roi', 'return on investment', 'grow my business', 'improve my business', 'boost my business', 'benefit me', 'benefit my', 'good for me', 'good for my'])) {
+  // Benefits questions
+  if (matchesAny(message, [
+    'benefit', 'how can you benefit', 'what will a website do', 'why need website',
+    'why do i need', 'advantages', 'value', 'worth it', 'roi', 'return',
+    'help my business', 'grow my business', 'what can a website do',
+    'why should i', 'is it worth', 'need a website', 'purpose of website',
+    'website importance', 'benefits of having', 'advantage of', 'help me grow',
+    'increase sales', 'get more customers', 'good for business'
+  ])) {
     return botResponses.benefits;
   }
   
-  // Mobile optimization
-  if (matchesAny(['mobile', 'responsive', 'phone', 'tablet', 'iphone', 'android', 'smartphone', 'mobile friendly', 'mobile optimized', 'mobile optimization', 'work on mobile', 'work on phone', 'look on phone', 'look on mobile', 'support mobile', 'mobile support', 'mobile version', 'phone version', 'small screen', 'touch screen', 'touchscreen', 'portable', 'handheld'])) {
+  // Mobile optimization questions
+  if (matchesAny(message, [
+    'mobile', 'responsive', 'phone', 'tablet', 'mobile friendly',
+    'mobile optimization', 'work on phone', 'look on phone', 'mobile version',
+    'support mobile', 'mobile support', 'iphone', 'android', 'smartphone',
+    'mobile device', 'small screen', 'touch screen', 'mobile first',
+    'responsive design', 'adapts to screen', 'different screen sizes'
+  ])) {
     return botResponses.mobile;
   }
   
-  // Services
-  if (matchesAny(['service', 'offer', 'what do you do', 'what can you', 'what you do', 'your work', 'help me with', 'can you do', 'do you do', 'provide', 'specialize', 'expertise', 'what are your', 'what services'])) {
+  // Service questions
+  if (matchesAny(message, [
+    'service', 'services', 'offer', 'what do you do', 'what can you do',
+    'what you do', 'provide', 'help with', 'work on', 'build',
+    'create', 'develop', 'make website', 'make site', 'offerings'
+  ])) {
     return botResponses.services;
   }
   
-  // Pricing (but not payment)
-  if (matchesAny(['price', 'cost', 'how much', 'budget', 'quote', 'pricing', 'rate', 'charge', 'fee', 'expensive', 'cheap', 'affordable', 'invest', 'investment', 'worth', 'estimate', 'ballpark']) && !matchesAny(['pay', 'instapay', 'paypal', 'vodafone', 'bank'])) {
+  // Pricing questions
+  if (matchesAny(message, [
+    'price', 'pricing', 'cost', 'how much', 'budget', 'quote', 'estimate',
+    'rate', 'charge', 'fee', 'expensive', 'cheap', 'affordable', 'investment',
+    'money', 'dollar', 'usd', 'egp', 'pound', 'currency'
+  ])) {
     return botResponses.pricing;
   }
   
-  // Packages
-  if (matchesAny(['package', 'bundle', 'plan', 'tier', 'option', 'combo', 'deal'])) {
+  // Package questions
+  if (matchesAny(message, [
+    'package', 'packages', 'bundle', 'plan', 'plans', 'tier', 'tiers',
+    'subscription', 'membership', 'offering packages', 'price list'
+  ])) {
     return botResponses.packages;
   }
   
-  // Process/Workflow
-  if (matchesAny(['process', 'how do you work', 'workflow', 'steps', 'how does it work', 'how it work', 'methodology', 'approach', 'procedure', 'way you work', 'working style', 'collaborate', 'collaboration', 'how you work'])) {
+  // Process questions
+  if (matchesAny(message, [
+    'process', 'how do you work', 'workflow', 'steps', 'how does it work',
+    'working process', 'development process', 'project process', 'procedure',
+    'how you work', 'way you work', 'approach', 'methodology'
+  ])) {
     return botResponses.process;
   }
   
-  // Timeline/Duration
-  if (matchesAny(['time', 'long', 'deadline', 'duration', 'week', 'days', 'fast', 'quick', 'deliver', 'delivery', 'when can', 'how soon', 'turnaround', 'complete', 'finish', 'done', 'ready', 'urgent', 'rush', 'asap', 'speed', 'eta', 'timeframe', 'time frame', 'schedule', 'when will', 'when do', 'when would', 'takes to', 'take to build'])) {
+  // Timeline questions
+  if (matchesAny(message, [
+    'time', 'timeline', 'long', 'duration', 'deadline', 'deliver', 'delivery',
+    'when', 'week', 'days', 'month', 'fast', 'quick', 'turnaround',
+    'how soon', 'finish', 'complete', 'done', 'ready', 'launch date',
+    'when can you', 'how quickly', 'timeframe', 'time frame', 'eta'
+  ])) {
     return botResponses.timeline;
   }
   
-  // Revisions
-  if (matchesAny(['revision', 'change', 'edit', 'modify', 'update', 'fix', 'tweak', 'adjust', 'alteration', 'correction', 'redo', 'undo', 'not happy', 'dont like', "don't like", 'satisfied', 'not satisfied', 'changes'])) {
+  // Revision questions
+  if (matchesAny(message, [
+    'revision', 'revisions', 'change', 'changes', 'edit', 'edits', 'modify',
+    'modification', 'update', 'updates', 'fix', 'adjust', 'tweak', 'redo',
+    'not satisfied', 'dont like', 'change something', 'make changes'
+  ])) {
     return botResponses.revisions;
   }
   
-  // Domain/Hosting
-  if (matchesAny(['domain', 'url', 'hosting', 'host', 'server', 'dns', 'ssl', 'website address', 'web address', '.com', 'godaddy', 'namecheap', 'deploy', 'deployment', 'live', 'online', 'publish'])) {
+  // Domain questions
+  if (matchesAny(message, [
+    'domain', 'url', 'hosting', 'host', 'website address', 'web address',
+    'domain name', 'website name', 'godaddy', 'namecheap', 'register domain'
+  ])) {
     return botResponses.domain;
   }
   
-  // Getting Started
-  if (matchesAny(['get started', 'begin', 'how do i start', 'how can i start', 'how to start', 'how i start', 'can i start', 'to start', 'next step', 'hire', 'work with you', 'work together', 'start project', 'new project', 'kick off', 'initiate', 'commence', 'lets go', "let's go", 'ready to', 'want to start', 'interested', 'sign up', 'onboard', 'onboarding', 'first step', 'where do i start', 'how to begin', 'start working', 'starting', 'get start', 'wanna start', 'want start', 'like to start', 'need to start', 'start now', 'begin now', 'start a project', 'begin a project', 'starting a project'])) {
+  // Getting started questions
+  if (matchesAny(message, [
+    'get started', 'getting started', 'start', 'begin', 'how to start',
+    'how can i start', 'how do i start', 'how i start', 'to start',
+    'start a project', 'begin a project', 'starting', 'kick off',
+    'next step', 'first step', 'hire', 'hire you', 'work with you',
+    'engage you', 'book you', 'commission', 'get going', 'proceed'
+  ])) {
     return botResponses.started;
   }
   
-  // Contact (general)
-  if (matchesAny(['contact', 'email', 'reach you', 'get in touch', 'touch with you', 'talk to you', 'speak with', 'call you', 'how can we talk', 'communicate', 'connect', 'connection', 'reach out', 'get hold', 'available', 'contact you', 'how to contact', 'ways to contact', 'how we talk', 'talk with you', 'speak to you', 'get to you'])) {
-    if (normalizedMessage.includes('form')) {
-      return botResponses.form;
-    }
+  // Contact questions
+  if (matchesAny(message, [
+    'contact', 'email', 'phone', 'reach', 'get in touch', 'touch',
+    'talk to you', 'speak', 'call', 'connect', 'communication',
+    'how to contact', 'ways to reach', 'contact info', 'contact details',
+    'how can we talk', 'how to reach'
+  ])) {
     return botResponses.contact;
   }
   
-  // WhatsApp
-  if (matchesAny(['whatsapp', 'whats app', 'message you', 'green button', 'text you', 'dm', 'direct message', 'instant message', 'messenger', 'sms', 'wa', 'whatapp']) || 
-      (normalizedMessage.includes('chat') && !normalizedMessage.includes('chatbot') && !normalizedMessage.includes('chat bot'))) {
+  // WhatsApp questions
+  if (matchesAny(message, [
+    'whatsapp', 'whats app', 'message you', 'text you', 'dm', 'direct message',
+    'green button', 'chat with you', 'instant message', 'wa'
+  ])) {
     return botResponses.whatsapp;
   }
   
-  // Form
-  if (matchesAny(['form', 'fill', 'submit', 'send message', 'inquiry', 'enquiry', 'write to', 'fill out', 'fill in'])) {
+  // Form questions
+  if (matchesAny(message, [
+    'form', 'contact form', 'fill', 'fill out', 'submit', 'send message',
+    'inquiry form', 'enquiry', 'message form'
+  ])) {
     return botResponses.form;
   }
   
-  // Navigation
-  if (matchesAny(['navigate', 'menu', 'page', 'where', 'find', 'go to', 'look for', 'looking for', 'locate', 'section', 'how to use', 'website work', 'site work', 'use this site', 'use the website', 'find the'])) {
+  // Navigation questions
+  if (matchesAny(message, [
+    'navigate', 'navigation', 'menu', 'pages', 'where', 'find', 'go to',
+    'location of', 'how to find', 'where is', 'website sections', 'sitemap'
+  ])) {
     return botResponses.navigation;
   }
   
-  // Technologies
-  if (matchesAny(['tech', 'stack', 'framework', 'language', 'react', 'next', 'built with', 'tools', 'software', 'platform', 'wordpress', 'html', 'css', 'javascript', 'typescript', 'node', 'code', 'coding', 'programming', 'develop with', 'technology', 'what do you use', 'technologies'])) {
+  // Technology questions
+  if (matchesAny(message, [
+    'tech', 'technology', 'technologies', 'stack', 'framework', 'language',
+    'react', 'next', 'javascript', 'typescript', 'built with', 'tools',
+    'what do you use', 'programming', 'code', 'coding', 'languages'
+  ])) {
     return botResponses.technologies;
   }
   
-  // Shopify/E-commerce
-  if (matchesAny(['shopify', 'ecommerce', 'e-commerce', 'online store', 'shop', 'sell online', 'products', 'store', 'cart', 'checkout', 'woocommerce', 'magento', 'selling', 'merchant', 'inventory', 'orders', 'sell stuff', 'sell things'])) {
+  // Shopify questions
+  if (matchesAny(message, [
+    'shopify', 'ecommerce', 'e-commerce', 'online store', 'shop', 'store',
+    'sell online', 'products', 'shopping cart', 'checkout', 'woocommerce',
+    'selling', 'retail', 'merchandise', 'inventory'
+  ])) {
     return botResponses.shopify;
   }
   
-  // Redesign
-  if (matchesAny(['redesign', 'rebuild', 'improve', 'existing', 'already have', 'current website', 'old website', 'makeover', 'revamp', 'refresh', 'modernize', 'upgrade', 'outdated', 'update my', 'redo my', 'new look', 'facelift', 'renovation', 'have a website', 'existing site', 'my current'])) {
+  // Redesign questions
+  if (matchesAny(message, [
+    'redesign', 'rebuild', 'improve', 'existing', 'already have', 'current website',
+    'old website', 'makeover', 'refresh', 'update website', 'revamp', 'modernize',
+    'outdated', 'new look', 'facelift', 'redo my website'
+  ])) {
     return botResponses.redesign;
   }
   
-  // Remote/Location
-  if (matchesAny(['remote', 'location', 'egypt', 'worldwide', 'country', 'international', 'timezone', 'time zone', 'where are you', 'based', 'located', 'from where', 'geography', 'distance', 'abroad', 'overseas', 'global', 'local', 'your location', 'work from', 'where do you'])) {
+  // Remote/location questions
+  if (matchesAny(message, [
+    'remote', 'location', 'where are you', 'based', 'egypt', 'worldwide',
+    'international', 'country', 'timezone', 'time zone', 'local', 'distance',
+    'work remotely', 'virtual', 'online work', 'anywhere'
+  ])) {
     return botResponses.remote;
   }
   
-  // Projects/Portfolio
-  if (matchesAny(['project', 'portfolio', 'example', 'previous', 'show me', 'sample', 'case study', 'past work', 'done before', 'experience', 'clients', 'built', 'created', 'made', 'showcase', 'gallery', 'proof', 'demonstrate', 'your work', 'see your work', 'examples of'])) {
+  // Projects questions
+  if (matchesAny(message, [
+    'project', 'projects', 'portfolio', 'example', 'examples', 'work',
+    'previous', 'past work', 'show me', 'sample', 'samples', 'case study',
+    'case studies', 'showcase', 'what have you built', 'websites you made'
+  ])) {
     return botResponses.projects;
   }
   
-  // About
-  if (matchesAny(['about', 'who are you', 'who is', 'hamza', 'sokkar', 'yourself', 'background', 'bio', 'biography', 'story', 'history', 'introduce', 'introduction', 'tell me about', 'developer', 'designer', 'founder', 'owner', 'about you', 'who you are'])) {
+  // About questions
+  if (matchesAny(message, [
+    'about', 'who are you', 'who is', 'hamza', 'sokkar', 'yourself',
+    'introduce', 'introduction', 'tell me about', 'bio', 'biography',
+    'personal', 'developer behind', 'creator'
+  ])) {
     return botResponses.about;
   }
   
-  // Reviews
-  if (matchesAny(['review', 'testimonial', 'feedback', 'rating', 'star', 'reputation', 'trust', 'reliable', 'recommend', 'recommendation', 'opinion', 'what people say', 'what others say', 'satisfied customers', 'happy clients', 'reviews', 'testimonials'])) {
+  // Skills questions
+  if (matchesAny(message, [
+    'skill', 'skills', 'abilities', 'capable', 'expertise', 'proficient',
+    'good at', 'specialize', 'specialty', 'specialization', 'competencies'
+  ])) {
+    return botResponses.skills;
+  }
+  
+  // Reviews/testimonials questions
+  if (matchesAny(message, [
+    'review', 'reviews', 'testimonial', 'testimonials', 'feedback',
+    'client', 'clients', 'rating', 'ratings', 'star', 'stars',
+    'what do people say', 'recommendations', 'references'
+  ])) {
     return botResponses.reviews;
   }
   
-  // Buttons help
-  if (matchesAny(['button', 'bottom left', 'bottom right', 'corner', 'icon', 'floating'])) {
-    if (normalizedMessage.includes('whatsapp') || normalizedMessage.includes('green') || normalizedMessage.includes('left')) {
-      return botResponses.whatsapp;
-    }
-    return "There are a few buttons you might be looking for:\n\n💚 **WhatsApp button** - Green button on the **bottom left** corner\n💬 **Chat button** - Purple button on the **bottom right** (that opened this chat!)\n📝 **Contact form** - Scroll down on homepage or go to Contact page";
-  }
-  
-  // Thanks
-  if (matchesAny(['thank', 'thanks', 'thx', 'appreciate', 'grateful', 'cheers', 'awesome', 'great', 'perfect', 'helpful', 'amazing', 'wonderful', 'fantastic', 'excellent', 'nice', 'cool', 'good job', 'well done', 'ty', 'tysm'])) {
+  // Thank you responses
+  if (matchesAny(message, [
+    'thank', 'thanks', 'thx', 'appreciate', 'grateful', 'ty', 'cheers'
+  ])) {
     return "You're welcome! 😊 Is there anything else you'd like to know? I'm happy to help!";
   }
   
-  // Goodbye
-  if (matchesAny(['bye', 'goodbye', 'see you', 'later', 'take care', 'gotta go', 'leaving', 'cya', 'peace', 'gtg', 'im out', "i'm out", 'catch you later', 'ttyl', 'talk later'])) {
+  // Goodbye responses
+  if (matchesAny(message, [
+    'bye', 'goodbye', 'see you', 'later', 'gotta go', 'leaving', 'cya'
+  ])) {
     return "Goodbye! 👋 Feel free to come back anytime you have questions. Good luck with your project!";
   }
   
-  // Yes responses
-  if (/^(yes|yeah|yep|sure|ok|okay|yup|absolutely|definitely|of course|certainly|ye|ya|yea|yas|yass|alright|aight|k|kk|okie|oki)[\\s!?.]*$/i.test(message)) {
-    return "Great! What would you like to know more about? Feel free to ask about services, pricing, timeline, or anything else!";
+  // Affirmative responses
+  if (/^(yes|yeah|yep|sure|ok|okay|yup|definitely|absolutely|of course)[\s!?.]*$/i.test(message.trim())) {
+    return "Great! What would you like to know more about? Feel free to ask about services, pricing, experience, timeline, or anything else!";
   }
   
-  // No responses
-  if (/^(no|nope|nah|not really|no thanks|no thank you|na|naw|negative)[\\s!?.]*$/i.test(message)) {
+  // Negative responses
+  if (/^(no|nope|nah|not really|im good|i am good)[\s!?.]*$/i.test(message.trim())) {
     return "No problem! If you have any questions later, I'm here to help. You can also reach out via WhatsApp or the contact form! 😊";
   }
   
@@ -646,7 +768,7 @@ export default function ChatBot() {
         
         {!isOpen && (
           <motion.span
-            className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-black"
+            className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-dark"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 1.5, type: "spring" }}

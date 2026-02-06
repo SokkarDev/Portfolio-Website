@@ -1,10 +1,10 @@
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect, lazy, Suspense, useState, createContext, useContext } from 'react';
+import { HashRouter as Router, useLocation } from 'react-router-dom';
+import { useEffect, useState, createContext, useContext } from 'react';
 import { Navigation } from './components/Navigation';
 import { Footer } from './components/Footer';
 import { Preloader } from './components/Preloader';
 import ChatBot from './components/ChatBot';
-import CustomCursor from './components/CustomCursor';
+import { HomePage } from './pages/HomePage';
 
 export const AppReadyContext = createContext(false);
 
@@ -12,21 +12,21 @@ export function useAppReady() {
   return useContext(AppReadyContext);
 }
 
-const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
-const ProjectsPage = lazy(() => import('./pages/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
-const ServicesPage = lazy(() => import('./pages/ServicesPage').then(m => ({ default: m.ServicesPage })));
-const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
-
-function PageLoader() {
-  return <div className="min-h-screen" />;
-}
-
-function ScrollToTop() {
-  const { pathname } = useLocation();
+function ScrollToSection() {
+  const { hash } = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    if (hash) {
+      const element = document.getElementById(hash.replace('#', ''));
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [hash]);
 
   return null;
 }
@@ -35,22 +35,14 @@ function AppContent({ isReady }: { isReady: boolean }) {
   return (
     <AppReadyContext.Provider value={isReady}>
       <div className="min-h-screen bg-dark text-white">
-        <ScrollToTop />
+        <ScrollToSection />
         <Navigation />
         <main className="pt-16">
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/projects" element={<ProjectsPage />} />
-              <Route path="/services" element={<ServicesPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-            </Routes>
-          </Suspense>
+          <HomePage />
         </main>
         <Footer />
         
         {isReady && <ChatBot />}
-        {isReady && <CustomCursor />}
       </div>
     </AppReadyContext.Provider>
   );

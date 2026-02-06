@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const services = [
-  { id: 'new-website', label: 'New Website', icon: '🌐' },
-  { id: 'redesign', label: 'Website Redesign', icon: '🔄' },
-  { id: 'ecommerce', label: 'E-commerce', icon: '🛒' },
-  { id: 'landing-page', label: 'Landing Page', icon: '📄' },
+  { id: 'ecommerce', label: 'E-commerce Store', icon: '🛒' },
+  { id: 'portfolio', label: 'Personal Portfolio', icon: '👤' },
+  { id: 'business', label: 'Business Website', icon: '🏢' },
+  { id: 'redesign', label: 'Website Redesign & Improvement', icon: '🔄' },
 ];
 
 export function ContactForm() {

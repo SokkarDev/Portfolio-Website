@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { preloadParticleSphere } from './InteractiveOrb';
 
 interface PreloaderProps {
   onComplete: () => void;
@@ -51,20 +52,33 @@ export function Preloader({ onComplete }: PreloaderProps) {
     const checkStylesLoaded = () => {
       if (document.fonts && document.fonts.ready) {
         document.fonts.ready.then(() => {
-          updateProgress(70);
+          updateProgress(55);
         });
       } else {
-        updateProgress(70);
+        updateProgress(55);
       }
     };
     setTimeout(checkStylesLoaded, 50);
 
+    // Start preloading 3D scene
+    const preload3D = async () => {
+      try {
+        updateProgress(60);
+        await preloadParticleSphere();
+        updateProgress(85);
+      } catch {
+        updateProgress(85);
+      }
+    };
+    
+    setTimeout(preload3D, 200);
+
     const handleLoad = () => {
-      updateProgress(95);
+      updateProgress(90);
     };
 
     if (document.readyState === 'complete') {
-      setTimeout(() => updateProgress(95), 100);
+      setTimeout(() => updateProgress(90), 100);
     } else {
       window.addEventListener('load', handleLoad);
     }
@@ -77,13 +91,13 @@ export function Preloader({ onComplete }: PreloaderProps) {
 
     const scheduleComplete = () => {
       if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(completeLoading, { timeout: 1500 });
+        (window as Window).requestIdleCallback(completeLoading, { timeout: 1500 });
       } else {
         setTimeout(completeLoading, 300);
       }
     };
 
-    const minDisplayTime = 800;
+    const minDisplayTime = 1200;
     const startTime = performance.now();
 
     const onReady = () => {

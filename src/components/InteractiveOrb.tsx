@@ -1,13 +1,13 @@
 import { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
-import { mousePosition, orbHoverState } from './OrbScene';
+import { mousePosition } from './ParticleSphere';
 import { useAppReady } from '../App';
 
 const Canvas = lazy(() => import('@react-three/fiber').then(m => ({ default: m.Canvas })));
-const OrbScene = lazy(() => import('./OrbScene'));
+const ParticleSphere = lazy(() => import('./ParticleSphere'));
 
 function OrbPlaceholder() {
   return (
-    <div className="w-full h-[280px] relative flex items-center justify-center">
+    <div className="w-full h-[320px] relative flex items-center justify-center">
       <div className="w-32 h-32 bg-purple-500/20 rounded-full blur-[50px] animate-pulse" />
       <div className="absolute w-24 h-24 bg-indigo-500/30 rounded-full blur-[40px] animate-pulse" />
     </div>
@@ -17,30 +17,31 @@ function OrbPlaceholder() {
 let preloadStarted = false;
 let preloadComplete = false;
 
-function preloadOrb() {
-  if (preloadStarted) return;
+export function preloadParticleSphere() {
+  if (preloadStarted) return Promise.resolve();
   preloadStarted = true;
   
-  Promise.all([
+  return Promise.all([
     import('@react-three/fiber'),
-    import('@react-three/drei'),
-    import('./OrbScene')
+    import('three'),
+    import('./ParticleSphere')
   ]).then(() => {
     preloadComplete = true;
-  }).catch(() => {});
+  }).catch(() => {
+    preloadComplete = true;
+  });
 }
 
 if (typeof window !== 'undefined') {
   if ('requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(preloadOrb, { timeout: 2000 });
+    (window as any).requestIdleCallback(() => preloadParticleSphere(), { timeout: 2000 });
   } else {
-    setTimeout(preloadOrb, 100);
+    setTimeout(() => preloadParticleSphere(), 100);
   }
 }
 
 export function InteractiveOrb() {
   const [shouldRender, setShouldRender] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const appReady = useAppReady();
 
@@ -53,16 +54,6 @@ export function InteractiveOrb() {
     
     mousePosition.x = (e.clientX - centerX) / (rect.width / 2);
     mousePosition.y = -(e.clientY - centerY) / (rect.height / 2);
-  }, []);
-
-  const handleMouseEnter = useCallback(() => {
-    setIsHovered(true);
-    orbHoverState.isHovered = true;
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setIsHovered(false);
-    orbHoverState.isHovered = false;
   }, []);
 
   useEffect(() => {
@@ -103,17 +94,12 @@ export function InteractiveOrb() {
   return (
     <div 
       ref={containerRef} 
-      className="w-full h-[280px] relative"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      className="w-full h-[320px] relative"
     >
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none transition-all duration-500">
-        <div className={`rounded-full blur-[50px] transition-all duration-500 ${
-          isHovered ? 'w-44 h-44 bg-purple-500/30' : 'w-32 h-32 bg-purple-500/20'
-        }`} />
-        <div className={`absolute rounded-full blur-[40px] transition-all duration-500 ${
-          isHovered ? 'w-36 h-36 bg-indigo-500/40' : 'w-24 h-24 bg-indigo-500/30'
-        }`} />
+      {/* Glow background */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="w-40 h-40 bg-purple-500/20 rounded-full blur-[60px]" />
+        <div className="absolute w-32 h-32 bg-indigo-500/25 rounded-full blur-[50px]" />
       </div>
       
       <Suspense fallback={<OrbPlaceholder />}>
@@ -124,16 +110,10 @@ export function InteractiveOrb() {
           dpr={[1, 1.5]}
         >
           <Suspense fallback={null}>
-            <OrbScene />
+            <ParticleSphere />
           </Suspense>
         </Canvas>
       </Suspense>
-      
-      <div className={`absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-gray-500 transition-opacity duration-500 ${
-        isHovered ? 'opacity-0' : 'opacity-50'
-      }`}>
-        Hover to interact
-      </div>
     </div>
   );
 }

@@ -1,23 +1,63 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navLinks = [
-  { name: 'Home', path: '/' },
-  { name: 'Projects', path: '/projects' },
-  { name: 'Services', path: '/services' },
-  { name: 'Contact', path: '/contact' },
+  { name: 'Home', href: '#home' },
+  { name: 'About', href: '#about' },
+  { name: 'Projects', href: '#projects' },
+  { name: 'Skills', href: '#skills' },
+  { name: 'Contact', href: '#contact' },
 ];
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation();
+  const [activeSection, setActiveSection] = useState('home');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ['home', 'about', 'career', 'projects', 'skills', 'testimonials', 'contact'];
+      const scrollPosition = window.scrollY + 100;
+
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const offsetTop = element.offsetTop;
+          const offsetHeight = element.offsetHeight;
+          
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveSection(section);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (href: string) => {
+    const id = href.replace('#', '');
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsOpen(false);
+  };
+
+  const isActive = (href: string) => {
+    const id = href.replace('#', '');
+    return activeSection === id;
+  };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass-effect">
-      <div className="max-w-7xl mx-auto px-6 py-4">
+    <nav className="fixed top-4 left-4 right-4 z-50 glass-effect rounded-2xl">
+      <div className="max-w-7xl mx-auto px-6 py-3">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-1 group">
+          <button 
+            onClick={() => scrollToSection('#home')} 
+            className="flex items-center space-x-1 group"
+          >
             <span className="text-2xl font-bold tracking-tight">
               <span className="text-white">Sokkar</span>
               <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-500 bg-clip-text text-transparent">.Dev</span>
@@ -27,37 +67,37 @@ export function Navigation() {
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             />
-          </Link>
+          </button>
 
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
+              <button
+                key={link.href}
+                onClick={() => scrollToSection(link.href)}
                 className={`text-sm font-medium transition-colors duration-500 ${
-                  location.pathname === link.path
+                  isActive(link.href)
                     ? 'text-white'
                     : 'text-gray-400 hover:text-white'
                 }`}
               >
                 {link.name}
-                {location.pathname === link.path && (
+                {isActive(link.href) && (
                   <motion.div
                     layoutId="underline"
                     className="h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 mt-1"
                     transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
                   />
                 )}
-              </Link>
+              </button>
             ))}
           </div>
 
-          <Link
-            to="/contact"
+          <button
+            onClick={() => scrollToSection('#contact')}
             className="hidden md:block px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-500"
           >
             Let's Talk
-          </Link>
+          </button>
 
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -85,26 +125,24 @@ export function Navigation() {
           >
             <div className="px-6 py-4 space-y-4">
               {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsOpen(false)}
-                  className={`block text-sm font-medium transition-colors duration-500 ${
-                    location.pathname === link.path
+                <button
+                  key={link.href}
+                  onClick={() => scrollToSection(link.href)}
+                  className={`block w-full text-left text-sm font-medium transition-colors duration-500 ${
+                    isActive(link.href)
                       ? 'text-white'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   {link.name}
-                </Link>
+                </button>
               ))}
-              <Link
-                to="/contact"
-                onClick={() => setIsOpen(false)}
+              <button
+                onClick={() => scrollToSection('#contact')}
                 className="block w-full text-center px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium rounded-full"
               >
                 Let's Talk
-              </Link>
+              </button>
             </div>
           </motion.div>
         )}

@@ -1,13 +1,19 @@
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 export function Footer() {
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <footer className="border-t border-white/10 py-12 mt-20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>
-            <Link to="/" className="flex items-center space-x-1 mb-4">
+            <button onClick={() => scrollToSection('home')} className="flex items-center space-x-1 mb-4">
               <span className="text-2xl font-bold tracking-tight">
                 <span className="text-white">Sokkar</span>
                 <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-500 bg-clip-text text-transparent">.Dev</span>
@@ -17,7 +23,7 @@ export function Footer() {
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
               />
-            </Link>
+            </button>
             <p className="text-gray-400 text-sm">
               Crafting exceptional web experiences that drive results.
             </p>
@@ -26,14 +32,19 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              {['Home', 'Projects', 'Services', 'Contact'].map((link) => (
-                <li key={link}>
-                  <Link
-                    to={link === 'Home' ? '/' : `/${link.toLowerCase()}`}
+              {[
+                { name: 'Home', id: 'home' },
+                { name: 'About', id: 'about' },
+                { name: 'Projects', id: 'projects' },
+                { name: 'Contact', id: 'contact' },
+              ].map((link) => (
+                <li key={link.id}>
+                  <button
+                    onClick={() => scrollToSection(link.id)}
                     className="text-gray-400 hover:text-white transition-colors duration-400 text-sm"
                   >
-                    {link}
-                  </Link>
+                    {link.name}
+                  </button>
                 </li>
               ))}
             </ul>
