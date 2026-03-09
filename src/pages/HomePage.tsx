@@ -1,123 +1,21 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ContactForm } from '../components/ContactForm';
 import { useAppReady } from '../App';
 
-// Tech Stack data with business value tooltips
-const skillsRow1 = [
-  { name: 'React', icon: '⚛️', value: 'Interactive UIs that keep users engaged' },
-  { name: 'Next.js', icon: '▲', value: 'Blazing fast load speeds for better SEO' },
-  { name: 'TypeScript', icon: 'TS', value: 'Fewer bugs, more reliable code' },
-  { name: 'JavaScript', icon: 'JS', value: 'Dynamic functionality that converts' },
-  { name: 'Tailwind CSS', icon: '✦', value: 'Rapid development, consistent design' },
-  { name: 'HTML', icon: '</>', value: 'Semantic structure for accessibility' },
-];
-
-const skillsRow2 = [
-  { name: 'CSS', icon: '🎨', value: 'Pixel-perfect, responsive layouts' },
-  { name: 'Python', icon: '🐍', value: 'Automation & backend flexibility' },
-  { name: 'Shopify', icon: '🛒', value: 'E-commerce stores that drive sales' },
-  { name: 'WordPress', icon: 'W', value: 'Easy content management for clients' },
-  { name: 'Figma', icon: '◈', value: 'Design-to-code precision' },
-  { name: 'SEO', icon: '📈', value: 'Higher rankings, more organic traffic' },
-];
-
-// Skill Card Component
-function SkillCard({ skill, isHovered, onHover, onLeave }: {
-  skill: typeof skillsRow1[0];
-  isHovered: boolean;
-  onHover: () => void;
-  onLeave: () => void;
-}) {
-  return (
-    <div
-      className="relative flex-shrink-0"
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
-    >
-      {/* Tooltip */}
-      <div
-        className={`absolute -top-16 left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-all duration-200 ${
-          isHovered ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'
-        }`}
-      >
-        <div className="bg-gray-900/95 backdrop-blur-xl border border-indigo-500/30 rounded-xl px-4 py-2 shadow-xl shadow-purple-500/10 whitespace-nowrap">
-          <p className="text-sm text-gray-200">{skill.value}</p>
-          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-900/95 border-r border-b border-indigo-500/30 rotate-45" />
-        </div>
-      </div>
-
-      {/* Skill Card */}
-      <div
-        className={`flex items-center gap-3 px-5 py-3 md:px-6 md:py-4 rounded-2xl border transition-all duration-300 cursor-pointer ${
-          isHovered
-            ? 'bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border-indigo-500/50 shadow-lg shadow-purple-500/20 scale-105'
-            : 'bg-white/5 border-white/10 hover:border-white/20'
-        }`}
-      >
-        <span className={`text-lg md:text-xl font-bold transition-all duration-300 ${
-          isHovered ? 'text-indigo-400' : 'text-gray-400'
-        }`}>
-          {skill.icon}
-        </span>
-        <span className={`font-medium text-sm md:text-base transition-colors duration-300 ${
-          isHovered ? 'text-white' : 'text-gray-300'
-        }`}>
-          {skill.name}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// Pure CSS Infinite Scrolling Marquee Component - No lag
-function TechMarquee({ skills, direction = 'left', duration = 25 }: { 
-  skills: typeof skillsRow1; 
-  direction?: 'left' | 'right';
-  duration?: number;
-}) {
-  const [isPaused, setIsPaused] = useState(false);
-  const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
-
-  // Duplicate items for seamless loop (only need 2x for CSS animation)
-  const duplicatedSkills = [...skills, ...skills];
-
-  return (
-    <div 
-      className="relative overflow-hidden py-4"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => {
-        setIsPaused(false);
-        setHoveredSkill(null);
-      }}
-    >
-      {/* Gradient masks for edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-r from-dark to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-16 md:w-24 bg-gradient-to-l from-dark to-transparent z-10 pointer-events-none" />
-      
-      <div
-        className={`flex gap-4 md:gap-6 ${
-          direction === 'left' ? 'animate-marquee-left' : 'animate-marquee-right'
-        } ${isPaused ? 'marquee-paused' : ''}`}
-        style={{ 
-          '--marquee-duration': `${duration}s`,
-        } as React.CSSProperties}
-      >
-        {duplicatedSkills.map((skill, index) => (
-          <SkillCard
-            key={`${skill.name}-${index}`}
-            skill={skill}
-            isHovered={hoveredSkill === `${skill.name}-${index}`}
-            onHover={() => setHoveredSkill(`${skill.name}-${index}`)}
-            onLeave={() => setHoveredSkill(null)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 const InteractiveOrb = lazy(() => import('../components/InteractiveOrb').then(m => ({ default: m.InteractiveOrb })));
+const IconSphere = lazy(() => import('../components/IconSphere').then(m => ({ default: m.IconSphere })));
+
+function IconSpherePlaceholder() {
+  return (
+    <div className="relative flex w-full max-w-[28rem] md:max-w-[32rem] aspect-square mx-auto items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-32 h-32 bg-purple-500/20 rounded-full blur-[50px] animate-pulse" />
+        <div className="w-24 h-24 bg-indigo-500/30 rounded-full blur-[40px] animate-pulse absolute" />
+      </div>
+    </div>
+  );
+}
 
 function OrbPlaceholder() {
   return (
@@ -134,41 +32,58 @@ const projects = [
     id: 1,
     number: '01',
     title: 'Elev8Fitness Gym',
-    description: 'Dynamic fitness platform with class schedules, membership plans, and integrated booking system.',
-    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=600&fit=crop',
+    description: 'Local gym website with class schedules, membership options, and a simple booking flow.',
+    clientType: 'Local fitness studio',
+    clientGoal: 'Get more trial signups and recurring memberships',
+    outcome: 'Clear timetables and calls to action made it easier for visitors to pick a plan and book a first session.',
+    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=600&fit=crop&auto=format&q=70',
     tags: ['HTML', 'CSS', 'WordPress', 'JavaScript'],
     gradient: 'from-indigo-900/60 to-purple-900/60',
     liveUrl: 'https://elev8fitness.wuaze.com/',
+    isFlagship: true,
+    stackSummary: 'Custom WordPress theme with booking integration',
   },
   {
     id: 2,
     number: '02',
     title: 'Fashion E-Commerce',
-    description: 'Full-featured Shopify store with custom theme, product filtering, and seamless checkout.',
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop',
+    description: 'Modern Shopify storefront with product filters, collections, and smooth checkout.',
+    clientType: 'Growing fashion brand',
+    clientGoal: 'Launch an online store that feels on-brand and easy to shop',
+    outcome: 'A clean layout and fast product pages made browsing feel effortless, helping turn more visitors into paying customers.',
+    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop&auto=format&q=70',
     tags: ['Shopify', 'Liquid', 'JavaScript', 'Custom Theme'],
     gradient: 'from-purple-900/60 to-fuchsia-900/60',
     liveUrl: null,
+    stackSummary: 'Custom Shopify theme tailored to the brand',
   },
   {
     id: 3,
     number: '03',
     title: 'Corporate Website',
-    description: 'Professional consulting firm website with modern design and SEO optimization.',
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop',
+    description: 'Consulting website with clear service pages and trust-building content layout.',
+    clientType: 'B2B consulting firm',
+    clientGoal: 'Look more credible to corporate clients and simplify enquiry flow',
+    outcome: 'Structured pages and clear next steps helped visitors quickly understand services and reach out.',
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop&auto=format&q=70',
     tags: ['Next.js', 'TypeScript', 'Tailwind CSS'],
     gradient: 'from-blue-900/60 to-indigo-900/60',
     liveUrl: null,
+    stackSummary: 'Static marketing site built with Next.js',
   },
   {
     id: 4,
     number: '04',
     title: 'Creative Portfolio',
-    description: 'Stunning photographer portfolio with smooth animations and gallery lightbox.',
-    image: 'https://images.unsplash.com/photo-1545665277-5ac240ac9aed?w=800&h=600&fit=crop',
+    description: 'Photographer portfolio with galleries, categories, and a simple enquiry form.',
+    clientType: 'Independent photographer',
+    clientGoal: 'Showcase work beautifully and make it easy to request shoots',
+    outcome: 'Large imagery and focused contact sections encouraged more visitors to reach out.',
+    image: 'https://images.unsplash.com/photo-1545665277-5ac240ac9aed?w=800&h=600&fit=crop&auto=format&q=70',
     tags: ['React', 'Framer Motion', 'CSS Grid'],
     gradient: 'from-emerald-900/60 to-teal-900/60',
     liveUrl: null,
+    stackSummary: 'Single-page React portfolio with gallery lightbox',
   },
 ];
 
@@ -218,17 +133,20 @@ const reviews = [
   {
     id: 1,
     name: 'Sarah Mitchell',
-    text: "I wasn't sure what to expect at first, but Hamza really surprised me. He listened to what I wanted and delivered something even better than I imagined. Super easy to work with and very professional!",
+    role: 'Founder, online coaching brand',
+    text: "I came in with a rough idea and a list of frustrations. Hamza turned it into a clean, fast website that actually gets people to book calls. Clear communication, no tech overwhelm.",
   },
   {
     id: 2,
     name: 'Ahmed Hassan',
-    text: "Honestly, I've worked with other developers before and it was always a headache. Hamza made the whole process smooth and stress-free. My website looks amazing and my customers love it!",
+    role: 'Owner, local service business',
+    text: "Other developers over-complicated everything. Hamza kept it simple, explained options in plain language, and delivered on time. Customers now tell me they found us because the site was easy to use.",
   },
   {
     id: 3,
     name: 'Emily Chen',
-    text: "Hamza built my Shopify store from scratch and I couldn't be happier. He really understood my brand and created something that feels exactly like me. Highly recommend his work!",
+    role: 'Founder, Shopify store',
+    text: "Hamza built my Shopify store from scratch and captured my brand perfectly. The site feels modern, loads quickly, and makes it easy for shoppers to find what they need. I finally feel confident sending people to my store.",
   },
 ];
 
@@ -250,6 +168,8 @@ const staggerContainer = {
 
 export function HomePage() {
   const appReady = useAppReady();
+  const shouldReduceMotion = useReducedMotion();
+
   const [currentReview, setCurrentReview] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   
@@ -257,12 +177,12 @@ export function HomePage() {
   const [currentProject, setCurrentProject] = useState(0);
 
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || shouldReduceMotion) return;
     const interval = setInterval(() => {
       setCurrentReview((prev) => (prev + 1) % reviews.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, shouldReduceMotion]);
 
   const nextReview = () => {
     setIsAutoPlaying(false);
@@ -308,7 +228,7 @@ export function HomePage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-indigo-400 font-medium mb-4"
             >
-              Hi, I'm Hamza Sokkar
+              Web developer for small businesses & e‑commerce brands
             </motion.p>
             <motion.h1 
               className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6"
@@ -316,8 +236,8 @@ export function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Web Developer{' '}
-              <span className="gradient-text">&amp; Digital Craftsman</span>
+              Websites that turn visitors into{' '}
+              <span className="text-gradient-shimmer">clients & sales</span>
             </motion.h1>
             <motion.p 
               className="text-gray-400 text-lg md:text-xl mb-8 max-w-xl leading-relaxed"
@@ -325,8 +245,7 @@ export function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              I craft exceptional digital experiences through elegant code and thoughtful design. 
-              Specializing in React, TypeScript, and modern web technologies.
+              I help non‑technical founders, local businesses, and online brands get websites that look premium, load fast, and bring in more enquiries, bookings, and sales.
             </motion.p>
             <motion.div 
               className="flex flex-col sm:flex-row gap-4"
@@ -336,15 +255,15 @@ export function HomePage() {
             >
               <button
                 onClick={() => scrollToSection('contact')}
-                className="px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-500 text-center"
+                className="px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-500 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
               >
-                Let's Talk
+                Start your project
               </button>
               <button
                 onClick={() => scrollToSection('projects')}
-                className="px-8 py-4 border border-white/20 text-white font-semibold rounded-full hover:bg-white/5 transition-all duration-500 text-center"
+                className="px-8 py-4 border border-white/20 text-white font-semibold rounded-full hover:bg-white/5 transition-all duration-500 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
               >
-                View Projects
+                View client work
               </button>
             </motion.div>
           </motion.div>
@@ -362,14 +281,14 @@ export function HomePage() {
 
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: shouldReduceMotion ? 0 : 1 }}
           transition={{ duration: 1, delay: 1.5 }}
           className="absolute bottom-10 left-1/2 -translate-x-1/2"
         >
           <div className="w-6 h-10 border-2 border-white/20 rounded-full flex justify-center">
             <motion.div
-              animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              animate={shouldReduceMotion ? undefined : { y: [0, 12, 0] }}
+              transition={shouldReduceMotion ? undefined : { duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
               className="w-1 h-3 bg-white/50 rounded-full mt-2"
             />
           </div>
@@ -389,10 +308,10 @@ export function HomePage() {
           >
             <span className="text-indigo-400 font-medium mb-4 block">About Me</span>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Building Digital <span className="gradient-text">Experiences</span>
+              Building Digital <span className="text-gradient-shimmer">Experiences</span>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Passionate about creating seamless user experiences and high-performance websites
+              Partnering with clients to plan, design, and ship websites that feel premium and perform for their business.
             </p>
           </motion.div>
 
@@ -405,20 +324,13 @@ export function HomePage() {
               transition={{ duration: 0.8 }}
             >
               <p className="text-gray-300 text-lg mb-6 leading-relaxed">
-                I'm a web developer with a passion for building beautiful, performant websites 
-                that help businesses succeed online. My journey in tech started 3 years ago, and 
-                since then, I've had the privilege of working with clients from different 
-                industries worldwide.
+                I'm Hamza, a web developer who helps small businesses, founders, and online brands turn vague ideas into clear, high-performing websites. You bring the goals and rough vision—I handle the tech, structure, and details.
               </p>
               <p className="text-gray-400 text-lg mb-6 leading-relaxed">
-                I specialize in modern React frameworks and have a strong foundation in both 
-                frontend development and e-commerce solutions. When I'm not coding, you'll find 
-                me exploring new technologies and learning about design.
+                From first call to launch, I guide you through each step: clarifying what the site should do, choosing the right stack, and building a clean, responsive experience that’s easy for your customers to use.
               </p>
               <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                Currently, I'm focused on building accessible, high-converting websites and 
-                Shopify stores that help businesses establish a strong online presence and 
-                increase their revenue.
+                Clients work with me because I communicate clearly, meet deadlines, and care about the results—more leads, more bookings, and a brand presence that feels like you.
               </p>
             </motion.div>
 
@@ -464,7 +376,7 @@ export function HomePage() {
           >
             <span className="text-indigo-400 font-medium mb-4 block">Career Journey</span>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Professional <span className="gradient-text">Experience</span>
+              Professional <span className="text-gradient-shimmer">Experience</span>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
               A timeline of my professional growth and key contributions
@@ -530,7 +442,7 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Projects Section - Premium Bento Grid */}
+      {/* Projects Section - Premium Cards Grid */}
       <section id="projects" className="py-24 bg-gradient-to-b from-purple-900/10 to-transparent">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
@@ -539,100 +451,107 @@ export function HomePage() {
             viewport={{ once: true, margin: "-100px" }}
             variants={fadeInUp}
             transition={{ duration: 0.8 }}
-            className="text-center mb-12 md:mb-20"
+            className="mb-12 md:mb-16 flex flex-col items-center gap-6"
           >
-            <span className="text-indigo-400 font-medium mb-4 block">Portfolio</span>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Featured <span className="gradient-text">Projects</span>
-            </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              A selection of websites I've built for clients across various industries
-            </p>
+            <div className="flex items-center w-full max-w-2xl">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+              <div className="border border-white/15 bg-white/10 backdrop-blur-xl z-10 rounded-full px-4 py-1 mx-4">
+                <span className="text-xs font-medium uppercase tracking-[0.18em] text-gray-200">
+                  Portfolio
+                </span>
+              </div>
+              <div className="flex-1 h-px bg-gradient-to-l from-transparent via-white/15 to-transparent" />
+            </div>
+            <div className="flex flex-col gap-3 items-center text-center">
+              <h2 className="text-3xl md:text-5xl font-bold">
+                Featured <span className="text-gradient-shimmer">Projects</span>
+              </h2>
+              <p className="text-gray-400 max-w-2xl">
+                A selection of case-study style client work across fitness, fashion, consulting, and creative services.
+              </p>
+              <p className="text-gray-500 text-sm">
+                Each project is designed to be clear, fast, and focused on business results.
+              </p>
+            </div>
           </motion.div>
 
           {/* Desktop Grid (Hidden on Mobile) */}
-          <div className="hidden md:grid grid-cols-2 gap-8 gap-y-20">
-            {projects.map((project, index) => (
-              <motion.div
-                key={project.id}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
-                variants={fadeInUp}
-                transition={{ duration: 0.8, delay: index * 0.15 }}
-                className="group relative"
-              >
-                {/* Floating Header - Positioned Absolute Above */}
-                <div className="absolute -top-12 left-0 z-10 flex items-baseline gap-3">
-                  <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white/40 to-white/10 group-hover:from-white/60 group-hover:to-white/30 transition-all duration-500">
-                    {project.number}
-                  </span>
-                  <h3 className="text-2xl font-bold text-white group-hover:text-indigo-300 transition-colors duration-300">
-                    {project.title}
-                  </h3>
-                </div>
+          <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 gap-6 auto-rows-fr max-w-5xl mx-auto">
+            {projects.map((project, index) => {
+              const meta = `${project.clientType} • ${project.clientGoal}`;
+              const benefitCopy = `${project.description} ${project.outcome}`;
 
-                {/* Card - Fixed Height for Uniformity */}
-                <div className={`relative h-[500px] w-full rounded-[32px] overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20 bg-gradient-to-br ${project.gradient}`}>
-                  {/* Content Layer */}
-                  <div className="relative z-10 p-8 h-full flex flex-col">
-                    <p className="text-white/90 text-lg font-light leading-relaxed mb-6 line-clamp-3">
-                      {project.description}
-                    </p>
+              return (
+                <motion.article
+                  key={project.id}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-80px" }}
+                  variants={fadeInUp}
+                  transition={{ duration: 0.7, delay: index * 0.08 }}
+                  className="flex h-full"
+                >
+                  <div className="flex flex-col h-full w-full rounded-2xl border border-white/10 bg-white/5/80 backdrop-blur-xl overflow-hidden hover:border-indigo-500/40 hover:shadow-[0_0_32px_-12px_rgba(129,140,248,0.7)] transition-all duration-300">
+                    {/* Media */}
+                    <div className="relative w-full overflow-hidden bg-dark/40">
+                      <div className="absolute inset-0 bg-gradient-to-br opacity-60 mix-blend-screen pointer-events-none" />
+                      <img
+                        src={project.image}
+                        alt={project.title}
+                        loading="lazy"
+                        className="w-full h-48 object-cover object-top transition-transform duration-700 hover:scale-105"
+                      />
+                    </div>
 
-                    {project.liveUrl && (
-                      <a
-                        href={project.liveUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-fit px-6 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-medium hover:bg-white/20 hover:scale-105 transition-all duration-300 flex items-center gap-2"
-                      >
-                        <span>View Live</span>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </a>
-                    )}
-                    
-                    {/* Browser Mockup - Anchored to bottom, fixed size */}
-                    <div className="absolute bottom-0 left-8 right-8 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                      <div className="bg-slate-900 rounded-t-xl p-2 pb-0 shadow-2xl border border-white/10 border-b-0">
-                        {/* Browser Chrome */}
-                        <div className="flex gap-1.5 mb-2 px-2 opacity-50">
-                          <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                          <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+                    {/* Content */}
+                    <div className="flex flex-1 flex-col gap-3 p-5">
+                      <header className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col gap-1">
+                          <h3 className="text-lg font-semibold text-white">
+                            {project.title}
+                          </h3>
+                          <p className="text-xs font-medium uppercase tracking-[0.16em] text-indigo-200/80">
+                            {meta}
+                          </p>
                         </div>
-                        {/* Image Container */}
-                        <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-slate-800">
-                           <img
-                            src={project.image}
-                            alt={project.title}
-                            loading="lazy"
-                            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
-                          />
-                        </div>
+                        <span className="text-sm font-mono text-gray-500">
+                          {project.number.padStart(2, '0')}
+                        </span>
+                      </header>
+
+                      <p className="text-sm text-gray-300 leading-relaxed line-clamp-4">
+                        {benefitCopy}
+                      </p>
+
+                      {project.liveUrl && (
+                        <a
+                          href={project.liveUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-medium text-gray-100 hover:bg-white/10 hover:border-indigo-400/70 transition-colors"
+                        >
+                          <span>View live project</span>
+                          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </a>
+                      )}
+
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {project.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2.5 py-0.5 text-[11px] rounded-full border border-white/12 bg-white/5 text-gray-200"
+                          >
+                            {tag}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Gradient Overlay for Depth */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-                </div>
-
-                {/* External Tags */}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {project.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 text-sm rounded-full border border-white/10 text-gray-400 group-hover:border-indigo-500/50 group-hover:text-white transition-colors duration-300"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
+                </motion.article>
+              );
+            })}
           </div>
 
           {/* Mobile Carousel (Visible on Mobile) */}
@@ -646,26 +565,39 @@ export function HomePage() {
                 transition={{ duration: 0.3 }}
                 className="group"
               >
-                {/* Mobile Header */}
-                <div className="mb-4">
-                  <span className="text-4xl font-bold text-white/5">
-                    {projects[currentProject].number}
-                  </span>
-                  <h3 className="text-2xl font-bold text-white -mt-3">
-                    {projects[currentProject].title}
-                  </h3>
-                </div>
-
                 {/* Mobile Card */}
-                <div 
-                  className={`relative bg-gradient-to-br ${projects[currentProject].gradient} rounded-[24px] p-5 pt-6 pb-0 overflow-hidden shadow-xl border border-white/5`}
-                  style={{ minHeight: '280px' }}
+                <div
+                  className={`relative rounded-2xl border border-white/10 bg-white/5 overflow-hidden shadow-lg`}
                 >
-                  <div className="absolute inset-0 bg-dark/20 backdrop-blur-[1px]" />
-                  
-                  <div className="relative z-10">
-                    <p className="text-gray-300 text-sm leading-relaxed mb-6 line-clamp-3">
+                  <div className="relative">
+                    <img
+                      src={projects[currentProject].image}
+                      alt={projects[currentProject].title}
+                      loading="lazy"
+                      className="w-full h-40 object-cover object-top"
+                    />
+                  </div>
+
+                  <div className="p-5 flex flex-col gap-3 bg-gradient-to-b from-dark/40 via-transparent to-transparent">
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <h3 className="text-lg font-semibold text-white">
+                          {projects[currentProject].title}
+                        </h3>
+                        <span className="text-xs font-mono text-gray-500">
+                          {projects[currentProject].number.padStart(2, '0')}
+                        </span>
+                      </div>
+                      <p className="text-xs font-medium uppercase tracking-[0.16em] text-indigo-200/90">
+                        {projects[currentProject].clientType} • {projects[currentProject].clientGoal}
+                      </p>
+                    </div>
+
+                    <p className="text-sm text-gray-300 leading-relaxed line-clamp-3">
                       {projects[currentProject].description}
+                    </p>
+                    <p className="text-xs text-indigo-100/90 line-clamp-3">
+                      {projects[currentProject].outcome}
                     </p>
 
                     {projects[currentProject].liveUrl && (
@@ -673,7 +605,7 @@ export function HomePage() {
                         href={projects[currentProject].liveUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md text-white text-sm font-medium rounded-full mb-6 border border-white/10"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md text-white text-xs font-medium rounded-full border border-white/15 mt-1"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -681,39 +613,18 @@ export function HomePage() {
                         View Live
                       </a>
                     )}
-                  </div>
 
-                  <div className="relative mt-auto z-10">
-                    <div className="relative mx-auto max-w-[90%] translate-y-2">
-                      <div className="bg-[#1e1e2e] rounded-t-lg pt-2 px-2 shadow-lg border border-white/5 border-b-0">
-                        <div className="flex gap-1 mb-1.5">
-                          <div className="w-2 h-2 rounded-full bg-[#ff5f56]" />
-                          <div className="w-2 h-2 rounded-full bg-[#ffbd2e]" />
-                          <div className="w-2 h-2 rounded-full bg-[#27c93f]" />
-                        </div>
-                      </div>
-                      <div className="overflow-hidden">
-                        <img
-                          src={projects[currentProject].image}
-                          alt={projects[currentProject].title}
-                          loading="lazy"
-                          className="w-full h-32 object-cover object-top opacity-90"
-                        />
-                      </div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {projects[currentProject].tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2.5 py-0.5 text-[11px] rounded-full border border-white/12 bg-white/5 text-gray-200"
+                        >
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                </div>
-
-                {/* Mobile External Tags */}
-                <div className="flex flex-wrap gap-2 mt-4 pl-1">
-                  {projects[currentProject].tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 text-xs rounded-full bg-transparent text-gray-400 border border-white/10"
-                    >
-                      {tag}
-                    </span>
-                  ))}
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -756,7 +667,7 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Skills Section - Infinite Marquee */}
+      {/* Skills Section - Interactive 3D Icon Sphere */}
       <section id="skills" className="py-24 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
@@ -769,24 +680,24 @@ export function HomePage() {
           >
             <span className="text-indigo-400 font-medium mb-4 block">Tech Stack</span>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              My <span className="gradient-text">Skills</span>
+              My <span className="text-gradient-shimmer">Skills</span>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Hover over any skill to see its business value
+              Drag to rotate, hover over any skill to see its business value
             </p>
           </motion.div>
         </div>
 
-        {/* Full-width marquee container */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="space-y-4"
+          className="flex justify-center"
         >
-          <TechMarquee skills={skillsRow1} direction="left" duration={20} />
-          <TechMarquee skills={skillsRow2} direction="right" duration={25} />
+          <Suspense fallback={<IconSpherePlaceholder />}>
+            <IconSphere />
+          </Suspense>
         </motion.div>
       </section>
 
@@ -803,10 +714,13 @@ export function HomePage() {
           >
             <span className="text-indigo-400 font-medium mb-4 block">Testimonials</span>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              What People <span className="gradient-text">Say</span>
+              What People <span className="text-gradient-shimmer">Say</span>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
               Feedback from clients I've had the pleasure of working with
+            </p>
+            <p className="text-gray-500 text-sm mt-3">
+              Working with clients worldwide across coaching, services, and online stores.
             </p>
           </motion.div>
 
@@ -826,7 +740,10 @@ export function HomePage() {
                   <p className="text-gray-300 dark:text-gray-300 text-lg md:text-xl leading-relaxed text-center mb-8">
                     "{reviews[currentReview].text}"
                   </p>
-                  <p className="font-semibold text-white text-center text-lg">— {reviews[currentReview].name}</p>
+                  <div className="text-center">
+                    <p className="font-semibold text-white text-lg">— {reviews[currentReview].name}</p>
+                    <p className="text-sm text-gray-400 mt-1">{reviews[currentReview].role}</p>
+                  </div>
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -835,7 +752,8 @@ export function HomePage() {
             <div className="flex items-center justify-between mt-8">
               <button
                 onClick={prevReview}
-                className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors duration-300"
+                className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
+                type="button"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -851,24 +769,39 @@ export function HomePage() {
                       setIsAutoPlaying(false);
                       setCurrentReview(index);
                     }}
-                    className={`h-2 rounded-full transition-all duration-300 ${
+                    className={`h-2 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark ${
                       index === currentReview 
                         ? 'w-8 bg-gradient-to-r from-indigo-500 to-purple-600' 
                         : 'w-2 bg-white/20 hover:bg-white/40'
                     }`}
+                    type="button"
                   />
                 ))}
               </div>
 
               <button
                 onClick={nextReview}
-                className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors duration-300"
+                className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
+                type="button"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             </div>
+          </div>
+
+          <div className="mt-12 text-center space-y-4">
+            <p className="text-gray-300">
+              Want results like this for your business?
+            </p>
+            <button
+              onClick={() => scrollToSection('contact')}
+              className="inline-flex px-8 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
+              type="button"
+            >
+              Start your project
+            </button>
           </div>
         </div>
       </section>
@@ -886,10 +819,10 @@ export function HomePage() {
           >
             <span className="text-indigo-400 font-medium mb-4 block">Get In Touch</span>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Let's Work <span className="gradient-text">Together</span>
+              Let's Work <span className="text-gradient-shimmer">Together</span>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Have a project in mind? Let's create something amazing together
+              Have a project in mind? Share a few details and I’ll come back with a clear, jargon-free plan to move it forward.
             </p>
           </motion.div>
 

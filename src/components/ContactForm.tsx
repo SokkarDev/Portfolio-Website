@@ -2,10 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const services = [
-  { id: 'ecommerce', label: 'E-commerce Store', icon: '🛒' },
-  { id: 'portfolio', label: 'Personal Portfolio', icon: '👤' },
-  { id: 'business', label: 'Business Website', icon: '🏢' },
-  { id: 'redesign', label: 'Website Redesign & Improvement', icon: '🔄' },
+  { id: 'portfolio', label: 'Portfolio website', icon: '👤' },
+  { id: 'ecommerce', label: 'Online store / e‑commerce', icon: '🛒' },
+  { id: 'landing', label: 'Launch or campaign landing page', icon: '🚀' },
+  { id: 'redesign', label: 'Redesign or improvements', icon: '🔄' },
+  { id: 'other', label: 'Other / not sure yet', icon: '❓' },
 ];
 
 export function ContactForm() {
@@ -120,7 +121,7 @@ export function ContactForm() {
 
       <div ref={dropdownRef} className="relative">
         <label className="block text-sm font-medium text-gray-300 mb-2">
-          Service of Interest <span className="text-gray-500">(optional)</span>
+          Project type <span className="text-gray-500">(optional)</span>
         </label>
         <button
           type="button"

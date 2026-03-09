@@ -25,7 +25,10 @@ export function Footer() {
               />
             </button>
             <p className="text-gray-400 text-sm">
-              Crafting exceptional web experiences that drive results.
+              Designing and building client-focused websites that feel premium and help businesses grow.
+            </p>
+            <p className="text-gray-500 text-xs mt-2">
+              Working with clients remotely from Egypt to worldwide.
             </p>
           </div>
 
@@ -65,6 +68,24 @@ export function Footer() {
               </li>
               <li className="text-gray-500">Remote - Worldwide</li>
             </ul>
+            <div className="mt-4 space-x-4 text-sm">
+              <a
+                href="https://github.com/HamzaSokkar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors duration-300"
+              >
+                GitHub
+              </a>
+              <a
+                href="https://www.linkedin.com/in/hamzasokkar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors duration-300"
+              >
+                LinkedIn
+              </a>
+            </div>
           </div>
         </div>
 

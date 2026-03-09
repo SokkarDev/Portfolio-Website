@@ -26,6 +26,36 @@ body {
   background-clip: text;
 }
 
+/* Shimmer gradient - replaces static gradient-text for section titles */
+:root {
+  --gradient-start: #6366f1;
+  --gradient-end: #a855f7;
+}
+
+.text-gradient-shimmer {
+  background-image:
+    linear-gradient(110deg, transparent 45%, rgba(255, 255, 255, 0.7) 50%, transparent 55%),
+    linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 100%, 100% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: shimmer-gradient 3s linear infinite;
+  display: inline-block;
+}
+
+@keyframes shimmer-gradient {
+  0%   { background-position: 100% 0, 0 0; }
+  100% { background-position: -100% 0, 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-gradient-shimmer {
+    animation: none;
+    background-image: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  }
+}
+
 .glass-effect {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);

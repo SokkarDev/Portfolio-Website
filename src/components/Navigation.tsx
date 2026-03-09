@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Dock, DockIcon } from './Dock';
+import { cn } from '../cn';
 
 const navLinks = [
   { name: 'Home', href: '#home' },
@@ -51,12 +53,13 @@ export function Navigation() {
   };
 
   return (
-    <nav className="fixed top-4 left-4 right-4 z-50 glass-effect rounded-2xl">
-      <div className="max-w-7xl mx-auto px-6 py-3">
-        <div className="flex items-center justify-between">
+    <nav className="fixed top-4 left-4 right-4 z-50 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_24px_-8px_rgba(0,0,0,0.3)]">
+      <div className="max-w-7xl mx-auto px-4 py-2.5 sm:px-6 sm:py-3">
+        <div className="flex items-center justify-between gap-4">
           <button 
             onClick={() => scrollToSection('#home')} 
-            className="flex items-center space-x-1 group"
+            className="flex items-center space-x-1 group shrink-0"
+            aria-label="Scroll to top of page"
           >
             <span className="text-2xl font-bold tracking-tight">
               <span className="text-white">Sokkar</span>
@@ -69,39 +72,45 @@ export function Navigation() {
             />
           </button>
 
-          <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <button
-                key={link.href}
-                onClick={() => scrollToSection(link.href)}
-                className={`text-sm font-medium transition-colors duration-500 ${
-                  isActive(link.href)
-                    ? 'text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                {link.name}
-                {isActive(link.href) && (
-                  <motion.div
-                    layoutId="underline"
-                    className="h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 mt-1"
-                    transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  />
-                )}
-              </button>
-            ))}
+          <div className="hidden md:flex items-center flex-1 justify-center">
+            <Dock className="pointer-events-auto relative h-11 px-3 py-2 w-fit flex items-center gap-2 rounded-2xl">
+              {navLinks.map((link) => {
+                const active = isActive(link.href);
+                return (
+                  <DockIcon
+                    key={link.href}
+                    className={cn(
+                      'cursor-pointer rounded-xl text-xs font-medium transition-colors',
+                      active
+                        ? 'bg-gradient-to-r from-indigo-500/80 to-purple-600/80 text-white border border-indigo-400/30 shadow-[0_0_12px_-4px_rgba(129,140,248,0.5)]'
+                        : 'bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 hover:border-white/15'
+                    )}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => scrollToSection(link.href)}
+                      className="flex h-full w-full items-center justify-center px-4 py-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
+                    >
+                      <span>{link.name}</span>
+                    </button>
+                  </DockIcon>
+                );
+              })}
+            </Dock>
           </div>
 
           <button
             onClick={() => scrollToSection('#contact')}
-            className="hidden md:block px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-500"
+            className="hidden md:block shrink-0 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
           >
-            Let's Talk
+            Start your project
           </button>
 
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-white p-2"
+            className="md:hidden text-white p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark rounded-full"
+            aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={isOpen}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isOpen ? (
@@ -121,7 +130,7 @@ export function Navigation() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="md:hidden glass-effect border-t border-white/10"
+            className="md:hidden border-t border-white/10 bg-white/5 backdrop-blur-xl"
           >
             <div className="px-6 py-4 space-y-4">
               {navLinks.map((link) => (
@@ -139,9 +148,9 @@ export function Navigation() {
               ))}
               <button
                 onClick={() => scrollToSection('#contact')}
-                className="block w-full text-center px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium rounded-full"
+                className="block w-full text-center px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
               >
-                Let's Talk
+                Start your project
               </button>
             </div>
           </motion.div>
