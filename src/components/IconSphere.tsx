@@ -1,5 +1,3 @@
-'use client';
-
 import { useRef, useMemo, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Html, OrbitControls } from '@react-three/drei';
@@ -23,7 +21,6 @@ const SKILLS: Skill[] = [
   { name: 'SEO', icon: '📈', value: 'Higher rankings, more organic traffic' },
 ];
 
-/** Fibonacci sphere: distribute N points evenly on a sphere */
 function getSpherePoints(n: number, radius = 1.4): [number, number, number][] {
   const points: [number, number, number][] = [];
   const goldenRatio = (1 + Math.sqrt(5)) / 2;

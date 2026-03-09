@@ -37,7 +37,7 @@ function AppContent({ isReady }: { isReady: boolean }) {
       <div className="min-h-screen bg-dark text-white">
         <ScrollToSection />
         <Navigation />
-        <main className="pt-16">
+        <main>
           <HomePage />
         </main>
         <Footer />

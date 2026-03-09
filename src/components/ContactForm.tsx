@@ -41,7 +41,6 @@ export function ContactForm() {
     setError(null);
 
     try {
-      // Using Web3Forms - free email API service
       const response = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: {
@@ -55,7 +54,6 @@ export function ContactForm() {
           email: formData.email,
           subject: `New Contact Form Submission${selectedService ? ` - ${selectedService.label}` : ''}`,
           message: `Name: ${formData.name}\nEmail: ${formData.email}\nService: ${selectedService?.label || 'Not specified'}\n\nMessage:\n${formData.message}`,
-          // Formatted for email
           name: formData.name,
           service: selectedService?.label || 'Not specified',
         })
@@ -68,15 +66,13 @@ export function ContactForm() {
         setFormData({ name: '', email: '', service: '', message: '' });
         setTimeout(() => setIsSubmitted(false), 5000);
       } else {
-        // Fallback: Open mailto link if API fails
         const mailtoLink = `mailto:hamzasokkardev@gmail.com?subject=${encodeURIComponent(`New Contact from ${formData.name}${selectedService ? ` - ${selectedService.label}` : ''}`)}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\nService: ${selectedService?.label || 'Not specified'}\n\nMessage:\n${formData.message}`)}`;
         window.location.href = mailtoLink;
         setIsSubmitted(true);
         setFormData({ name: '', email: '', service: '', message: '' });
         setTimeout(() => setIsSubmitted(false), 5000);
       }
-    } catch (err) {
-      // Fallback: Open mailto link if fetch fails
+    } catch (_err) {
       const mailtoLink = `mailto:hamzasokkardev@gmail.com?subject=${encodeURIComponent(`New Contact from ${formData.name}${selectedService ? ` - ${selectedService.label}` : ''}`)}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\nService: ${selectedService?.label || 'Not specified'}\n\nMessage:\n${formData.message}`)}`;
       window.location.href = mailtoLink;
       setIsSubmitted(true);

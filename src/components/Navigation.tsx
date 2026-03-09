@@ -1,14 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dock, DockIcon } from './Dock';
-import { cn } from '../cn';
 
 const navLinks = [
-  { name: 'Home', href: '#home' },
-  { name: 'About', href: '#about' },
-  { name: 'Projects', href: '#projects' },
-  { name: 'Skills', href: '#skills' },
-  { name: 'Contact', href: '#contact' },
+  { name: 'Home', href: '#home', sections: ['home'] },
+  { name: 'About', href: '#about', sections: ['about', 'career'] },
+  { name: 'Projects', href: '#projects', sections: ['projects'] },
+  { name: 'Skills', href: '#skills', sections: ['skills'] },
+  { name: 'Contact', href: '#contact', sections: ['testimonials', 'contact'] },
 ];
 
 export function Navigation() {
@@ -18,15 +16,14 @@ export function Navigation() {
   useEffect(() => {
     const handleScroll = () => {
       const sections = ['home', 'about', 'career', 'projects', 'skills', 'testimonials', 'contact'];
-      const scrollPosition = window.scrollY + 100;
+      const scrollPosition = window.scrollY + 150;
 
-      for (const section of sections) {
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = sections[i];
         const element = document.getElementById(section);
         if (element) {
           const offsetTop = element.offsetTop;
-          const offsetHeight = element.offsetHeight;
-          
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+          if (scrollPosition >= offsetTop) {
             setActiveSection(section);
             break;
           }
@@ -35,127 +32,187 @@ export function Navigation() {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (href: string) => {
+  const scrollToSection = useCallback((href: string) => {
     const id = href.replace('#', '');
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
     setIsOpen(false);
+    
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          const navHeight = 100;
+          const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+          window.scrollTo({
+            top: elementPosition - navHeight,
+            behavior: 'smooth',
+          });
+        }
+      }, 50);
+    });
+  }, []);
+
+  const isActive = (link: typeof navLinks[0]) => {
+    return link.sections.includes(activeSection);
   };
 
-  const isActive = (href: string) => {
-    const id = href.replace('#', '');
-    return activeSection === id;
-  };
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
 
   return (
-    <nav className="fixed top-4 left-4 right-4 z-50 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_24px_-8px_rgba(0,0,0,0.3)]">
-      <div className="max-w-7xl mx-auto px-4 py-2.5 sm:px-6 sm:py-3">
-        <div className="flex items-center justify-between gap-4">
-          <button 
-            onClick={() => scrollToSection('#home')} 
-            className="flex items-center space-x-1 group shrink-0"
-            aria-label="Scroll to top of page"
+    <header className="fixed top-0 left-0 right-0 z-50 py-3 px-4 sm:py-4 md:py-6 md:px-8">
+      {/* Desktop Navigation */}
+      <div className="hidden lg:flex items-center justify-center relative max-w-7xl mx-auto">
+        {/* LEFT: Logo */}
+        <div className="absolute left-0">
+          <button
+            onClick={() => scrollToSection('#home')}
+            className="relative h-14 rounded-full liquid-glass flex items-center justify-center px-6 transition-transform duration-300 hover:scale-105 active:scale-95 cursor-pointer shadow-xl shadow-black/10"
+            aria-label="Scroll to top"
           >
-            <span className="text-2xl font-bold tracking-tight">
+            <span className="text-xl font-bold tracking-tight">
               <span className="text-white">Sokkar</span>
               <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-500 bg-clip-text text-transparent">.Dev</span>
             </span>
-            <motion.div
-              className="w-2 h-2 rounded-full bg-gradient-to-r from-indigo-400 to-purple-500"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            />
           </button>
+        </div>
 
-          <div className="hidden md:flex items-center flex-1 justify-center">
-            <Dock className="pointer-events-auto relative h-11 px-3 py-2 w-fit flex items-center gap-2 rounded-2xl">
-              {navLinks.map((link) => {
-                const active = isActive(link.href);
-                return (
-                  <DockIcon
-                    key={link.href}
-                    className={cn(
-                      'cursor-pointer rounded-xl text-xs font-medium transition-colors',
-                      active
-                        ? 'bg-gradient-to-r from-indigo-500/80 to-purple-600/80 text-white border border-indigo-400/30 shadow-[0_0_12px_-4px_rgba(129,140,248,0.5)]'
-                        : 'bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 hover:border-white/15'
-                    )}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => scrollToSection(link.href)}
-                      className="flex h-full w-full items-center justify-center px-4 py-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
-                    >
-                      <span>{link.name}</span>
-                    </button>
-                  </DockIcon>
-                );
-              })}
-            </Dock>
-          </div>
+        {/* CENTER: Nav Links Pill */}
+        <nav className="flex items-center gap-1 liquid-glass rounded-full shadow-xl shadow-black/10 h-14 px-4 md:px-6">
+          {navLinks.map((link) => {
+            const active = isActive(link);
+            return (
+              <button
+                key={link.href}
+                onClick={() => scrollToSection(link.href)}
+                className="relative text-sm font-semibold rounded-full transition-colors duration-300 cursor-pointer flex items-center px-4 md:px-6 py-2.5"
+              >
+                {active && (
+                  <motion.span
+                    layoutId="activeNav"
+                    className="absolute inset-0 rounded-full bg-purple-500/10 border border-purple-500/30"
+                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <span
+                  className={`relative z-10 transition-colors duration-300 ${
+                    active ? 'text-gray-100' : 'text-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  {link.name}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
 
+        {/* RIGHT: Start your project */}
+        <div className="absolute right-0">
           <button
             onClick={() => scrollToSection('#contact')}
-            className="hidden md:block shrink-0 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
+            className="liquid-glass rounded-full shadow-xl shadow-black/10 flex items-center gap-2 text-sm font-semibold transition-transform duration-300 hover:scale-105 h-14 px-6 text-white"
           >
-            Start your project
-          </button>
-
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-white p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark rounded-full"
-            aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            aria-expanded={isOpen}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {isOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 3h6v6" />
+              <path d="M10 14L21 3" />
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
             </svg>
+            <span>Start your project</span>
           </button>
         </div>
       </div>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="md:hidden border-t border-white/10 bg-white/5 backdrop-blur-xl"
+      {/* Mobile Navigation */}
+      <div className="lg:hidden">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => scrollToSection('#home')}
+            className="flex items-center space-x-1"
+            aria-label="Scroll to top"
           >
-            <div className="px-6 py-4 space-y-4">
-              {navLinks.map((link) => (
-                <button
-                  key={link.href}
-                  onClick={() => scrollToSection(link.href)}
-                  className={`block w-full text-left text-sm font-medium transition-colors duration-500 ${
-                    isActive(link.href)
-                      ? 'text-white'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  {link.name}
-                </button>
-              ))}
-              <button
-                onClick={() => scrollToSection('#contact')}
-                className="block w-full text-center px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-medium rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
-              >
-                Start your project
-              </button>
+            <span className="text-xl font-bold tracking-tight">
+              <span className="text-white">Sokkar</span>
+              <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-500 bg-clip-text text-transparent">.Dev</span>
+            </span>
+          </button>
+
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="liquid-glass rounded-full shadow-xl shadow-black/10 p-3.5 relative z-[60]"
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={isOpen}
+          >
+            <div className="w-5 h-4 flex flex-col justify-between relative">
+              <span className={`block h-0.5 w-5 rounded-full bg-white transition-all duration-300 origin-center ${isOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
+              <span className={`block h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${isOpen ? 'opacity-0 scale-0' : 'opacity-100'}`} />
+              <span className={`block h-0.5 w-5 rounded-full bg-white transition-all duration-300 origin-center ${isOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
+          </button>
+        </div>
+
+        <AnimatePresence>
+          {isOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+                onClick={() => setIsOpen(false)}
+              />
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="overflow-visible relative z-50"
+              >
+                <div className="liquid-glass rounded-2xl shadow-xl shadow-black/10 mt-4 p-4">
+                  <div className="flex flex-col gap-2">
+                    {navLinks.map((link) => {
+                      const active = isActive(link);
+                      return (
+                        <button
+                          key={link.href}
+                          onClick={() => scrollToSection(link.href)}
+                          className={`text-sm font-semibold rounded-full transition-all duration-300 cursor-pointer text-center py-3 px-6 ${
+                            active
+                              ? 'text-gray-100 bg-purple-500/10 border border-purple-500/30'
+                              : 'text-gray-400 hover:text-gray-200 hover:bg-white/5 border border-transparent'
+                          }`}
+                        >
+                          {link.name}
+                        </button>
+                      );
+                    })}
+                    <button
+                      onClick={() => scrollToSection('#contact')}
+                      className="flex items-center justify-center gap-2 text-sm font-semibold rounded-full transition-transform duration-300 mt-2 hover:scale-[1.02] py-3 px-6 text-white border border-white/10 bg-gradient-to-r from-indigo-500/20 to-purple-600/20"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M15 3h6v6" />
+                        <path d="M10 14L21 3" />
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      </svg>
+                      <span>Start your project</span>
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </div>
+    </header>
   );
 }

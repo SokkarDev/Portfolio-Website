@@ -47,7 +47,7 @@ export const Dock = ({
   const reducedMotion = useReducedMotion();
 
   return (
-    <DockContext.Provider value={{ mouseX, magnification, distance, reducedMotion }}>
+    <DockContext.Provider value={{ mouseX, magnification, distance, reducedMotion: reducedMotion ?? false }}>
       <motion.div
         onMouseMove={(event) => {
           if (reducedMotion) return;
@@ -76,7 +76,7 @@ export const DockIcon = ({ className, children }: DockIconProps) => {
   const { mouseX, magnification, distance, reducedMotion } = context;
 
   const distanceCalc = useTransform(mouseX, (value: number) => {
-    if (reducedMotion) return -distance - 1; // Keep at base size when reduced motion
+    if (reducedMotion) return -distance - 1;
     const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
     return value - bounds.x - bounds.width / 2;
   });
@@ -111,4 +111,3 @@ export const DockIcon = ({ className, children }: DockIconProps) => {
 };
 
 export type { DockProps, DockIconProps };
-

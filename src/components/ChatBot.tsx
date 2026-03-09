@@ -53,7 +53,6 @@ function normalizeText(text: string): string {
   
   let normalized = text.toLowerCase().trim();
   
-  // Handle word boundaries for shortcuts
   Object.keys(shortcuts).forEach(shortcut => {
     const regex = new RegExp(`\\b${shortcut}\\b`, 'gi');
     normalized = normalized.replace(regex, shortcuts[shortcut]);
@@ -62,7 +61,6 @@ function normalizeText(text: string): string {
   return normalized;
 }
 
-// Calculate similarity between two strings (Levenshtein-based)
 function similarity(s1: string, s2: string): number {
   const longer = s1.length > s2.length ? s1 : s2;
   const shorter = s1.length > s2.length ? s2 : s1;
@@ -90,24 +88,20 @@ function similarity(s1: string, s2: string): number {
   return (longer.length - costs[longer.length]) / longer.length;
 }
 
-// Check if any keyword/phrase matches
 function matchesAny(text: string, patterns: string[]): boolean {
   const normalizedText = normalizeText(text);
   
   for (const pattern of patterns) {
     const normalizedPattern = normalizeText(pattern);
     
-    // Direct inclusion
     if (normalizedText.includes(normalizedPattern)) return true;
     
-    // Word-by-word fuzzy matching for short phrases
     const patternWords = normalizedPattern.split(' ');
     const textWords = normalizedText.split(' ');
     
-    // Check if all pattern words appear (with fuzzy matching)
     let allWordsFound = true;
     for (const pWord of patternWords) {
-      if (pWord.length < 3) continue; // Skip very short words
+      if (pWord.length < 3) continue;
       
       let wordFound = false;
       for (const tWord of textWords) {
@@ -375,13 +369,11 @@ const quickReplies = [
 function getResponse(message: string): string {
   const normalizedMessage = normalizeText(message);
   
-  // Greeting patterns
   if (/^(hello|hi|hey|hola|greetings|yo|sup|howdy|good morning|good afternoon|good evening)[\s!?.]*$/i.test(message.trim()) || 
       (normalizedMessage.includes('start') && normalizedMessage.length < 20 && !normalizedMessage.includes('get') && !normalizedMessage.includes('how'))) {
     return botResponses.greeting;
   }
   
-  // Experience questions
   if (matchesAny(message, [
     'experience', 'years of experience', 'how long have you been', 'how many years',
     'how much experience', 'your experience', 'background', 'track record',
@@ -393,7 +385,6 @@ function getResponse(message: string): string {
     return botResponses.experience;
   }
   
-  // Payment questions
   if (matchesAny(message, [
     'pay', 'payment', 'how can i pay', 'how do i pay', 'payment method',
     'payment options', 'send money', 'transfer money', 'pay you',
@@ -405,7 +396,6 @@ function getResponse(message: string): string {
     return botResponses.payment;
   }
   
-  // Benefits questions
   if (matchesAny(message, [
     'benefit', 'how can you benefit', 'what will a website do', 'why need website',
     'why do i need', 'advantages', 'value', 'worth it', 'roi', 'return',
@@ -417,7 +407,6 @@ function getResponse(message: string): string {
     return botResponses.benefits;
   }
   
-  // Mobile optimization questions
   if (matchesAny(message, [
     'mobile', 'responsive', 'phone', 'tablet', 'mobile friendly',
     'mobile optimization', 'work on phone', 'look on phone', 'mobile version',
@@ -428,7 +417,6 @@ function getResponse(message: string): string {
     return botResponses.mobile;
   }
   
-  // Service questions
   if (matchesAny(message, [
     'service', 'services', 'offer', 'what do you do', 'what can you do',
     'what you do', 'provide', 'help with', 'work on', 'build',
@@ -437,7 +425,6 @@ function getResponse(message: string): string {
     return botResponses.services;
   }
   
-  // Pricing questions
   if (matchesAny(message, [
     'price', 'pricing', 'cost', 'how much', 'budget', 'quote', 'estimate',
     'rate', 'charge', 'fee', 'expensive', 'cheap', 'affordable', 'investment',
@@ -446,7 +433,6 @@ function getResponse(message: string): string {
     return botResponses.pricing;
   }
   
-  // Package questions
   if (matchesAny(message, [
     'package', 'packages', 'bundle', 'plan', 'plans', 'tier', 'tiers',
     'subscription', 'membership', 'offering packages', 'price list'
@@ -454,7 +440,6 @@ function getResponse(message: string): string {
     return botResponses.packages;
   }
   
-  // Process questions
   if (matchesAny(message, [
     'process', 'how do you work', 'workflow', 'steps', 'how does it work',
     'working process', 'development process', 'project process', 'procedure',
@@ -463,7 +448,6 @@ function getResponse(message: string): string {
     return botResponses.process;
   }
   
-  // Timeline questions
   if (matchesAny(message, [
     'time', 'timeline', 'long', 'duration', 'deadline', 'deliver', 'delivery',
     'when', 'week', 'days', 'month', 'fast', 'quick', 'turnaround',
@@ -473,7 +457,6 @@ function getResponse(message: string): string {
     return botResponses.timeline;
   }
   
-  // Revision questions
   if (matchesAny(message, [
     'revision', 'revisions', 'change', 'changes', 'edit', 'edits', 'modify',
     'modification', 'update', 'updates', 'fix', 'adjust', 'tweak', 'redo',
@@ -482,7 +465,6 @@ function getResponse(message: string): string {
     return botResponses.revisions;
   }
   
-  // Domain questions
   if (matchesAny(message, [
     'domain', 'url', 'hosting', 'host', 'website address', 'web address',
     'domain name', 'website name', 'godaddy', 'namecheap', 'register domain'
@@ -490,7 +472,6 @@ function getResponse(message: string): string {
     return botResponses.domain;
   }
   
-  // Getting started questions
   if (matchesAny(message, [
     'get started', 'getting started', 'start', 'begin', 'how to start',
     'how can i start', 'how do i start', 'how i start', 'to start',
@@ -501,7 +482,6 @@ function getResponse(message: string): string {
     return botResponses.started;
   }
   
-  // Contact questions
   if (matchesAny(message, [
     'contact', 'email', 'phone', 'reach', 'get in touch', 'touch',
     'talk to you', 'speak', 'call', 'connect', 'communication',
@@ -511,7 +491,6 @@ function getResponse(message: string): string {
     return botResponses.contact;
   }
   
-  // WhatsApp questions
   if (matchesAny(message, [
     'whatsapp', 'whats app', 'message you', 'text you', 'dm', 'direct message',
     'green button', 'chat with you', 'instant message', 'wa'
@@ -519,7 +498,6 @@ function getResponse(message: string): string {
     return botResponses.whatsapp;
   }
   
-  // Form questions
   if (matchesAny(message, [
     'form', 'contact form', 'fill', 'fill out', 'submit', 'send message',
     'inquiry form', 'enquiry', 'message form'
@@ -527,7 +505,6 @@ function getResponse(message: string): string {
     return botResponses.form;
   }
   
-  // Navigation questions
   if (matchesAny(message, [
     'navigate', 'navigation', 'menu', 'pages', 'where', 'find', 'go to',
     'location of', 'how to find', 'where is', 'website sections', 'sitemap'
@@ -535,7 +512,6 @@ function getResponse(message: string): string {
     return botResponses.navigation;
   }
   
-  // Technology questions
   if (matchesAny(message, [
     'tech', 'technology', 'technologies', 'stack', 'framework', 'language',
     'react', 'next', 'javascript', 'typescript', 'built with', 'tools',
@@ -544,7 +520,6 @@ function getResponse(message: string): string {
     return botResponses.technologies;
   }
   
-  // Shopify questions
   if (matchesAny(message, [
     'shopify', 'ecommerce', 'e-commerce', 'online store', 'shop', 'store',
     'sell online', 'products', 'shopping cart', 'checkout', 'woocommerce',
@@ -553,7 +528,6 @@ function getResponse(message: string): string {
     return botResponses.shopify;
   }
   
-  // Redesign questions
   if (matchesAny(message, [
     'redesign', 'rebuild', 'improve', 'existing', 'already have', 'current website',
     'old website', 'makeover', 'refresh', 'update website', 'revamp', 'modernize',
@@ -562,7 +536,6 @@ function getResponse(message: string): string {
     return botResponses.redesign;
   }
   
-  // Remote/location questions
   if (matchesAny(message, [
     'remote', 'location', 'where are you', 'based', 'egypt', 'worldwide',
     'international', 'country', 'timezone', 'time zone', 'local', 'distance',
@@ -571,7 +544,6 @@ function getResponse(message: string): string {
     return botResponses.remote;
   }
   
-  // Projects questions
   if (matchesAny(message, [
     'project', 'projects', 'portfolio', 'example', 'examples', 'work',
     'previous', 'past work', 'show me', 'sample', 'samples', 'case study',
@@ -580,7 +552,6 @@ function getResponse(message: string): string {
     return botResponses.projects;
   }
   
-  // About questions
   if (matchesAny(message, [
     'about', 'who are you', 'who is', 'hamza', 'sokkar', 'yourself',
     'introduce', 'introduction', 'tell me about', 'bio', 'biography',
@@ -589,7 +560,6 @@ function getResponse(message: string): string {
     return botResponses.about;
   }
   
-  // Skills questions
   if (matchesAny(message, [
     'skill', 'skills', 'abilities', 'capable', 'expertise', 'proficient',
     'good at', 'specialize', 'specialty', 'specialization', 'competencies'
@@ -597,7 +567,6 @@ function getResponse(message: string): string {
     return botResponses.skills;
   }
   
-  // Reviews/testimonials questions
   if (matchesAny(message, [
     'review', 'reviews', 'testimonial', 'testimonials', 'feedback',
     'client', 'clients', 'rating', 'ratings', 'star', 'stars',
@@ -606,26 +575,22 @@ function getResponse(message: string): string {
     return botResponses.reviews;
   }
   
-  // Thank you responses
   if (matchesAny(message, [
     'thank', 'thanks', 'thx', 'appreciate', 'grateful', 'ty', 'cheers'
   ])) {
     return "You're welcome! 😊 Is there anything else you'd like to know? I'm happy to help!";
   }
   
-  // Goodbye responses
   if (matchesAny(message, [
     'bye', 'goodbye', 'see you', 'later', 'gotta go', 'leaving', 'cya'
   ])) {
     return "Goodbye! 👋 Feel free to come back anytime you have questions. Good luck with your project!";
   }
   
-  // Affirmative responses
   if (/^(yes|yeah|yep|sure|ok|okay|yup|definitely|absolutely|of course)[\s!?.]*$/i.test(message.trim())) {
     return "Great! What would you like to know more about? Feel free to ask about services, pricing, experience, timeline, or anything else!";
   }
   
-  // Negative responses
   if (/^(no|nope|nah|not really|im good|i am good)[\s!?.]*$/i.test(message.trim())) {
     return "No problem! If you have any questions later, I'm here to help. You can also reach out via WhatsApp or the contact form! 😊";
   }
