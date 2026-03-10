@@ -129,6 +129,48 @@ h1, h2, h3, h4, h5, h6 {
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+/* Bento grid card — deep charcoal with ultra-thin glass border */
+.bento-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  overflow: visible;
+  transition: border-color 0.5s ease, box-shadow 0.5s ease, background 0.5s ease;
+}
+
+.bento-card:hover {
+  border-color: rgba(99, 102, 241, 0.15);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow:
+    0 0 30px -8px rgba(99, 102, 241, 0.1),
+    0 0 60px -15px rgba(139, 92, 246, 0.06);
+}
+
+/* (mobile dock removed — unified top nav for all screens) */
+
+/* Timeline styles */
+.timeline-line {
+  width: 1px;
+  background: linear-gradient(to bottom, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.2), transparent);
+}
+
+.timeline-node {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border: 2px solid #0f0f0f;
+  box-shadow: 0 0 8px 2px rgba(99, 102, 241, 0.4), 0 0 16px 4px rgba(139, 92, 246, 0.2);
+  flex-shrink: 0;
+}
+
+.timeline-node-inner {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: white;
+  opacity: 0.8;
+}
+
 .hover-glow:hover {
   box-shadow: 0 0 30px rgba(99, 102, 241, 0.4);
 }
@@ -142,25 +184,20 @@ h1, h2, h3, h4, h5, h6 {
   animation: float 6s ease-in-out infinite;
 }
 
-/* Infinite marquee animations */
-@keyframes marquee-left {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+/* Infinite marquee — Mirror-Double technique
+   Track contains items × 2. Scrolls from 0 → -50% (one full set).
+   When the first set exits, the second set is in the exact same position.
+   Result: truly seamless loop with zero jump / flicker. */
+@keyframes marquee-scroll {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
-@keyframes marquee-right {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0); }
-}
-
-.animate-marquee-left {
-  animation: marquee-left var(--marquee-duration, 25s) linear infinite;
+.marquee-track {
   will-change: transform;
-}
-
-.animate-marquee-right {
-  animation: marquee-right var(--marquee-duration, 25s) linear infinite;
-  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .marquee-paused {
