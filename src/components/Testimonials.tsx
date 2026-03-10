@@ -136,7 +136,7 @@ export function Testimonials() {
 
       {/* Main Testimonial Card */}
       <div
-        className="relative min-h-[280px] sm:min-h-[300px] md:min-h-[280px] touch-pan-y"
+        className="relative min-h-[240px] sm:min-h-[300px] md:min-h-[280px] touch-pan-y"
         style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
       >
         <AnimatePresence initial={false} custom={direction} mode="wait">
@@ -216,7 +216,7 @@ export function Testimonials() {
                 </div>
 
                 {/* Right: Quote + Results */}
-                <div className="flex-1 flex flex-col gap-2.5 sm:gap-4 md:gap-5">
+                <div className="flex flex-col gap-2 sm:gap-4 md:gap-5">
                   <motion.blockquote
                     className="text-[11px] sm:text-sm md:text-lg text-gray-300 leading-relaxed"
                     initial={{ opacity: 0 }}
@@ -264,15 +264,15 @@ export function Testimonials() {
         </motion.button>
 
         {/* Dots — tiny & minimalist */}
-        <div className="flex gap-2">
+        <div className="flex gap-1.5 sm:gap-2">
           {testimonials.map((_, index) => (
             <motion.button
               key={index}
               onClick={() => handleDotClick(index)}
               className={`rounded-full transition-all duration-300 ${
                 index === currentIndex
-                  ? 'w-5 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-600'
-                  : 'w-1.5 h-1.5 bg-white/20 hover:bg-white/40'
+                  ? 'w-2 h-2 sm:w-5 sm:h-1.5 bg-gradient-to-r from-indigo-500 to-purple-600'
+                  : 'w-1.5 h-1.5 sm:w-1.5 sm:h-1.5 bg-white/20 hover:bg-white/40'
               }`}
               whileHover={{ scale: 1.3 }}
               whileTap={{ scale: 0.9 }}

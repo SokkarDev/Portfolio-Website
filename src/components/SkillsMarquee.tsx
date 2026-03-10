@@ -30,7 +30,8 @@ const skills = [
   {
     name: 'HTML5',
     color: '#E34F26',
-    svg: '<path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.564-2.438L1.5 0zm7.031 9.75l-.232-2.718 10.059.003.071-.757.541-6.03.115-1.248H5.248l.032.375.557 6.375h9.93l-.31 3.397-3.46.937-3.397-.937-.236-2.603H6.15l.418 4.685L11.977 18l5.456-1.553.72-8.697H8.531z"/>',
+    // Clean, optimized HTML5 shield path (monochrome, 24×24 viewBox)
+    svg: '<path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.564-2.438L1.5 0zm16.09 4.413H5.41l.213 2.622h9.195l-.255 2.716h-8.94l.24 2.573h8.462l-.366 3.523-2.91.804-2.956-.81-.188-2.11h-2.61l.29 3.855L12 19.002l5.355-1.12.612-6.765.623-6.704z"/>',
   },
   {
     name: 'CSS3',
@@ -66,12 +67,14 @@ const skills = [
 
 function SkillIcon({ svg, color, isHovered }: { svg: string; color: string; isHovered: boolean }) {
   return (
-    <div className="w-[18px] h-[18px] sm:w-5 sm:h-5 flex items-center justify-center shrink-0">
+    <div className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center shrink-0 aspect-square box-border">
       <svg
         viewBox="0 0 24 24"
         fill="currentColor"
         className="w-full h-full transition-colors duration-300"
         style={{ color: isHovered ? color : '#9ca3af' }}
+        shapeRendering="geometricPrecision"
+        preserveAspectRatio="xMidYMid meet"
         dangerouslySetInnerHTML={{ __html: svg }}
       />
     </div>
@@ -120,11 +123,10 @@ function SkillCard({
 }
 
 /*
- * Mirror-Double Marquee Row
- * - Duplicates the full array so the track is 2× wide.
- * - CSS `@keyframes` translates from 0 to -50% (i.e. exactly one full set width).
- * - When the first set scrolls fully off-screen, the identical second set
- *   is in the exact same starting position, creating a seamless infinite loop.
+ * Quad-Mirror Marquee Row
+ * - Quadruples the items so the track is 4× wide (never runs out on wide viewports).
+ * - CSS keyframes translate from 0 to -25% (exactly one full set width).
+ * - When the first set scrolls off, the next identical set is in the same position — seamless loop.
  * - Uses `will-change: transform` for GPU acceleration.
  * - `animation-timing-function: linear` for constant velocity.
  * - Hover pauses via `animation-play-state: paused`.
@@ -133,16 +135,18 @@ function MarqueeRow({
   items,
   duration = 30,
   rowIndex,
+  direction = 'left',
 }: {
   items: typeof skills;
   duration?: number;
   rowIndex: number;
+  direction?: 'left' | 'right';
 }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const isAnyHovered = hoveredIndex !== null;
 
-  // Mirror-doubled items: [A, B, C, D, A, B, C, D]
-  const doubled = [...items, ...items];
+  // Quad-mirrored items: [A,B,C,D, A,B,C,D, A,B,C,D, A,B,C,D] — ensures no empty gaps on wide viewports
+  const content = [...items, ...items, ...items, ...items];
 
   return (
     <div className="relative overflow-hidden py-1">
@@ -157,10 +161,11 @@ function MarqueeRow({
           animationTimingFunction: 'linear',
           animationIterationCount: 'infinite',
           animationName: 'marquee-scroll',
+          animationDirection: direction === 'left' ? 'normal' : 'reverse',
           willChange: 'transform',
         }}
       >
-        {doubled.map((skill, i) => (
+        {content.map((skill, i) => (
           <SkillCard
             key={`r${rowIndex}-${i}`}
             skill={skill}
@@ -181,8 +186,8 @@ export function SkillsMarquee() {
 
   return (
     <div className="w-full space-y-3 sm:space-y-4">
-      <MarqueeRow items={row1} duration={28} rowIndex={0} />
-      <MarqueeRow items={row2} duration={34} rowIndex={1} />
+      <MarqueeRow items={row1} duration={28} rowIndex={0} direction="left" />
+      <MarqueeRow items={row2} duration={34} rowIndex={1} direction="right" />
     </div>
   );
 }

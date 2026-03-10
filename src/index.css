@@ -184,13 +184,14 @@ h1, h2, h3, h4, h5, h6 {
   animation: float 6s ease-in-out infinite;
 }
 
-/* Infinite marquee — Mirror-Double technique
-   Track contains items × 2. Scrolls from 0 → -50% (one full set).
-   When the first set exits, the second set is in the exact same position.
+/* Infinite marquee — Quad-Mirror technique
+   Track contains items × 4. Scrolls from 0 → -25% (one full set).
+   Extra copies ensure viewport never sees empty space on wide screens.
+   When the first set exits, the next identical set is in the exact same position.
    Result: truly seamless loop with zero jump / flicker. */
 @keyframes marquee-scroll {
   0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(-25%, 0, 0); }
 }
 
 .marquee-track {
