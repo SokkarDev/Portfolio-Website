@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { ContactForm } from '../components/ContactForm';
 import { useAppReady } from '../App';
 import { SkillsMarquee } from '../components/SkillsMarquee';
@@ -86,10 +86,92 @@ const fadeInUp = {
   visible: { opacity: 1, y: 0 }
 };
 
+type Experience = (typeof experiences)[number];
+
+function JourneyCard({ exp, index }: { exp: Experience; index: number }) {
+  const isLeft = index % 2 === 0;
+
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-50px' }}
+      custom={index}
+      variants={revealUp}
+      className="relative"
+    >
+      {/* === Desktop: Alternating Layout === */}
+      <div className="hidden md:grid md:grid-cols-2 md:gap-12 items-start">
+        <div className={isLeft ? '' : 'md:order-2'}>
+          <div className={`bento-card rounded-2xl sm:rounded-3xl p-6 lg:p-8 group overflow-visible ${isLeft ? 'md:mr-6' : 'md:ml-6'}`}>
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-white" style={{ lineHeight: '1.3' }}>{exp.role}</h3>
+              <p className="text-indigo-400 font-medium text-sm mt-1">{exp.company}</p>
+              <p className="text-gray-500 text-xs mt-0.5">{exp.location} • {exp.period}</p>
+            </div>
+            <ul className="space-y-2 mb-4">
+              {exp.highlights.map((h, i) => (
+                <li key={i} className="flex items-start gap-2 text-gray-400 text-sm">
+                  <span className="text-indigo-400 mt-0.5 shrink-0">▹</span>
+                  <span>{h}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap gap-1.5">
+              {exp.tags.map((tag) => (
+                <span key={tag} className="px-2.5 py-0.5 text-xs rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">{tag}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className={isLeft ? 'md:order-2' : ''} />
+
+        <div className="absolute left-1/2 top-6 -translate-x-1/2 z-10">
+          <div className="timeline-node flex items-center justify-center">
+            <div className="timeline-node-inner" />
+          </div>
+        </div>
+      </div>
+
+      {/* === Mobile: Left-aligned timeline === */}
+      <div className="md:hidden flex gap-4 sm:gap-6">
+        <div className="relative z-10 mt-1 flex items-start justify-center shrink-0" style={{ width: '32px' }}>
+          <div className="timeline-node flex items-center justify-center">
+            <div className="timeline-node-inner" />
+          </div>
+        </div>
+
+        <div className="flex-1 bento-card rounded-2xl p-4 sm:p-5 group overflow-visible">
+          <div className="mb-3">
+            <h3 className="text-sm sm:text-base font-bold text-white" style={{ lineHeight: '1.3' }}>{exp.role}</h3>
+            <p className="text-indigo-400 font-medium text-xs sm:text-sm mt-0.5">{exp.company}</p>
+            <p className="text-gray-500 text-[10px] sm:text-xs mt-0.5">{exp.location} • {exp.period}</p>
+          </div>
+          <ul className="space-y-1.5 mb-3">
+            {exp.highlights.map((h, i) => (
+              <li key={i} className="flex items-start gap-2 text-gray-400 text-[10px] sm:text-sm">
+                <span className="text-indigo-400 mt-0.5 shrink-0">▹</span>
+                <span>{h}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="flex flex-wrap gap-1.5">
+            {exp.tags.map((tag) => (
+              <span key={tag} className="px-2 py-0.5 text-[9px] sm:text-xs rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">{tag}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export function HomePage() {
   const appReady = useAppReady();
   const shouldReduceMotion = useReducedMotion();
   const [emailCopied, setEmailCopied] = useState(false);
+  const [journeyExpanded, setJourneyExpanded] = useState(false);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -194,101 +276,58 @@ export function HomePage() {
             </p>
           </motion.div>
 
-          <div className="max-w-4xl mx-auto">
-            {/* Row 1: Hero card (2/3) + Mindset card (1/3) — ALWAYS side by side */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-2 sm:mb-3 md:mb-4">
-              {/* Hero / Intro card */}
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} custom={0} variants={revealUp} className="col-span-2">
-                <div className="bento-card rounded-xl sm:rounded-2xl md:rounded-3xl p-3 sm:p-5 md:p-8 relative group h-full overflow-visible">
-                  <div className="absolute top-0 right-0 w-full h-full overflow-hidden rounded-xl sm:rounded-2xl md:rounded-3xl pointer-events-none">
-                    <div className="absolute -top-4 -right-4 sm:-top-6 sm:-right-6 w-20 h-20 sm:w-32 sm:h-32 md:w-44 md:h-44 rounded-full bg-gradient-to-br from-indigo-500/8 to-purple-500/8 blur-2xl group-hover:from-indigo-500/12 group-hover:to-purple-500/12 transition-all duration-700" />
-                    <div className="absolute top-6 right-6 sm:top-10 sm:right-10 md:top-12 md:right-12 w-10 h-10 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full border border-indigo-500/8 group-hover:border-indigo-500/15 transition-colors duration-700 hidden sm:block" />
-                    <div className="absolute top-12 right-12 sm:top-16 sm:right-16 md:top-20 md:right-20 w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full border border-purple-500/8 group-hover:border-purple-500/15 transition-colors duration-700 hidden sm:block" />
-                    <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 grid grid-cols-4 gap-1 sm:gap-1.5 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity duration-700 hidden sm:grid">
-                      {Array.from({ length: 16 }).map((_, i) => (<div key={i} className="w-1 h-1 rounded-full bg-white" />))}
-                    </div>
-                  </div>
-                  <div className="relative z-10">
-                    <div className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-md sm:rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-2 sm:mb-4 md:mb-5">
-                      <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
-                      </svg>
-                    </div>
-                    <h3 className="text-sm sm:text-lg md:text-2xl font-bold text-white mb-1 sm:mb-2 md:mb-3" style={{ lineHeight: '1.3' }}>Hi, I'm Hamza</h3>
-                    <p className="text-gray-400 text-[10px] sm:text-xs md:text-base leading-relaxed max-w-md">
-                      A web developer who helps small businesses, founders, and online brands turn vague ideas into clear, high-performing websites. You bring the goals — I handle the tech, structure, and every detail in between.
-                    </p>
-                  </div>
-                  <div className="relative z-10 flex items-center gap-2 sm:gap-3 md:gap-5 mt-3 sm:mt-5 md:mt-6 pt-2.5 sm:pt-4 md:pt-5 border-t border-white/[0.06]">
-                    <div><p className="text-white font-bold text-[11px] sm:text-sm md:text-lg">3+</p><p className="text-gray-500 text-[7px] sm:text-[9px] md:text-xs uppercase tracking-wider">Years</p></div>
-                    <div className="w-px h-4 sm:h-6 bg-white/[0.06]" />
-                    <div><p className="text-white font-bold text-[11px] sm:text-sm md:text-lg">Remote</p><p className="text-gray-500 text-[7px] sm:text-[9px] md:text-xs uppercase tracking-wider">Worldwide</p></div>
-                    <div className="w-px h-4 sm:h-6 bg-white/[0.06]" />
-                    <div><p className="text-white font-bold text-[11px] sm:text-sm md:text-lg">Full-Stack</p><p className="text-gray-500 text-[7px] sm:text-[9px] md:text-xs uppercase tracking-wider">Web & E-com</p></div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Mindset Card — always 1/3 width, matching desktop layout */}
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} custom={1} variants={revealUp} className="col-span-1">
-                <div className="bento-card rounded-xl sm:rounded-2xl md:rounded-3xl p-2.5 sm:p-4 md:p-6 relative group h-full flex flex-col items-center text-center justify-center overflow-visible">
-                  <div className="w-8 h-8 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-white/[0.06] flex items-center justify-center mb-2 sm:mb-3 md:mb-4 group-hover:from-indigo-500/15 group-hover:to-purple-500/15 transition-all duration-500">
-                    <svg className="w-3.5 h-3.5 sm:w-5 sm:h-5 md:w-6 md:h-6 text-indigo-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-[10px] sm:text-xs md:text-sm font-bold text-white mb-0.5 sm:mb-1 md:mb-2" style={{ lineHeight: '1.3' }}>Mindset</h3>
-                  <p className="text-gray-500 text-[8px] sm:text-[10px] md:text-xs leading-relaxed max-w-[180px]">Discipline, focus, and a love for solving real problems drive everything I build.</p>
-                  <div className="mt-1.5 sm:mt-2 md:mt-3 flex flex-wrap justify-center gap-0.5 sm:gap-1 md:gap-1.5">
-                    {['Focus', 'Growth', 'Grit'].map((t) => (
-                      <span key={t} className="px-1 sm:px-1.5 md:px-2 py-0.5 text-[6px] sm:text-[8px] md:text-[10px] rounded-full border border-white/[0.06] bg-white/[0.02] text-gray-500">{t}</span>
+          <div className="max-w-3xl mx-auto">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-60px" }}
+              custom={0}
+              variants={revealUp}
+            >
+              <div className="bento-card rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 relative group overflow-visible">
+                <div className="absolute inset-0 overflow-hidden rounded-2xl sm:rounded-3xl pointer-events-none">
+                  <div className="absolute -top-6 -right-6 w-32 h-32 sm:w-44 sm:h-44 md:w-56 md:h-56 rounded-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 blur-2xl group-hover:from-indigo-500/15 group-hover:to-purple-500/15 transition-all duration-700" />
+                  <div className="absolute top-10 right-10 sm:top-12 sm:right-12 w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-indigo-500/10 group-hover:border-indigo-500/20 transition-colors duration-700 hidden sm:block" />
+                  <div className="absolute top-16 right-16 sm:top-20 sm:right-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-purple-500/10 group-hover:border-purple-500/20 transition-colors duration-700 hidden sm:block" />
+                  <div className="absolute bottom-4 right-4 grid grid-cols-4 gap-1.5 opacity-[0.05] group-hover:opacity-[0.1] transition-opacity duration-700 hidden sm:grid">
+                    {Array.from({ length: 16 }).map((_, i) => (
+                      <div key={i} className="w-1 h-1 rounded-full bg-white" />
                     ))}
                   </div>
                 </div>
-              </motion.div>
-            </div>
 
-            {/* Row 2: Path (1/2) + Craft (1/2) — always side by side */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4">
-              {/* Path Card */}
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} custom={2} variants={revealUp}>
-                <div className="bento-card rounded-xl sm:rounded-2xl md:rounded-3xl p-2.5 sm:p-4 md:p-6 relative group h-full flex flex-col overflow-visible">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-md sm:rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-1.5 sm:mb-2 md:mb-3">
-                    <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+                <div className="relative z-10">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-lg sm:rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-4 sm:mb-5">
+                    <svg className="w-5 h-5 sm:w-5 sm:h-5 md:w-6 md:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
                     </svg>
                   </div>
-                  <h3 className="text-[10px] sm:text-xs md:text-sm font-bold text-white mb-0.5 sm:mb-1 md:mb-2" style={{ lineHeight: '1.3' }}>Path</h3>
-                  <p className="text-gray-400 text-[8px] sm:text-[10px] md:text-xs leading-relaxed flex-1">Entirely self-taught with 3+ years of hands-on experience. Every skill earned through shipping real work.</p>
-                  <div className="mt-2 sm:mt-3 md:mt-4 space-y-1 sm:space-y-1.5">
-                    <div className="flex items-center justify-between text-[6px] sm:text-[8px] md:text-[10px] text-gray-500">
-                      <span>2023 · Start</span><span>Now · Clients</span>
-                    </div>
-                    <div className="h-0.5 sm:h-1 rounded-full bg-white/[0.04] overflow-hidden">
-                      <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-indigo-500/40 to-purple-500/40" />
-                    </div>
-                  </div>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4" style={{ lineHeight: '1.3' }}>
+                    Hi, I'm Hamza
+                  </h3>
+                  <p className="text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl">
+                    A web developer who helps small businesses, founders, and online brands turn vague ideas into clear, high-performing websites. You bring the goals — I handle the tech, structure, and every detail in between.
+                  </p>
                 </div>
-              </motion.div>
 
-              {/* Craft Card */}
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} custom={3} variants={revealUp}>
-                <div className="bento-card rounded-xl sm:rounded-2xl md:rounded-3xl p-2.5 sm:p-4 md:p-6 relative group h-full flex flex-col overflow-visible">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-md sm:rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-1.5 sm:mb-2 md:mb-3">
-                    <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.049.58.025 1.193-.14 1.743" />
-                    </svg>
+                <div className="relative z-10 flex items-center gap-4 sm:gap-6 md:gap-8 mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-white/[0.08]">
+                  <div>
+                    <p className="text-white font-bold text-base sm:text-lg md:text-xl">3+</p>
+                    <p className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mt-0.5">Years</p>
                   </div>
-                  <h3 className="text-[10px] sm:text-xs md:text-sm font-bold text-white mb-0.5 sm:mb-1 md:mb-2" style={{ lineHeight: '1.3' }}>Craft</h3>
-                  <p className="text-gray-400 text-[8px] sm:text-[10px] md:text-xs leading-relaxed flex-1">I understand what modern tech can do for a business — so I advise on the solutions you actually need, not just the flashiest ones.</p>
-                  <div className="mt-1.5 sm:mt-2 md:mt-3 flex flex-wrap gap-0.5 sm:gap-1 md:gap-1.5">
-                    {['React', 'Next.js', 'Shopify', 'WordPress', 'TypeScript'].map((tech) => (
-                      <span key={tech} className="px-1 sm:px-1.5 md:px-2 py-0.5 text-[6px] sm:text-[8px] md:text-[10px] rounded-full border border-indigo-500/10 bg-indigo-500/5 text-indigo-300/70">{tech}</span>
-                    ))}
+                  <div className="w-px h-8 sm:h-10 bg-white/[0.08]" />
+                  <div>
+                    <p className="text-white font-bold text-base sm:text-lg md:text-xl">Remote</p>
+                    <p className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mt-0.5">Worldwide</p>
+                  </div>
+                  <div className="w-px h-8 sm:h-10 bg-white/[0.08]" />
+                  <div>
+                    <p className="text-white font-bold text-base sm:text-lg md:text-xl">Full-Stack</p>
+                    <p className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mt-0.5">Web & E-com</p>
                   </div>
                 </div>
-              </motion.div>
-            </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -314,90 +353,56 @@ export function HomePage() {
             <div className="absolute left-4 sm:left-5 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-indigo-500/30 via-purple-500/20 to-transparent md:-translate-x-px" />
 
             <div className="space-y-10 sm:space-y-12 md:space-y-16">
-              {experiences.map((exp, index) => {
-                const isLeft = index % 2 === 0;
-                return (
-                  <motion.div
-                    key={index}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, margin: "-50px" }}
-                    custom={index}
-                    variants={revealUp}
-                    className="relative"
-                  >
-                    {/* === Desktop: Alternating Layout === */}
-                    <div className="hidden md:grid md:grid-cols-2 md:gap-12 items-start">
-                      {/* Left content area */}
-                      <div className={isLeft ? '' : 'md:order-2'}>
-                        <div className={`bento-card rounded-2xl sm:rounded-3xl p-6 lg:p-8 group overflow-visible ${isLeft ? 'md:mr-6' : 'md:ml-6'}`}>
-                          <div className="mb-4">
-                            <h3 className="text-lg font-bold text-white" style={{ lineHeight: '1.3' }}>{exp.role}</h3>
-                            <p className="text-indigo-400 font-medium text-sm mt-1">{exp.company}</p>
-                            <p className="text-gray-500 text-xs mt-0.5">{exp.location} • {exp.period}</p>
-                          </div>
-                          <ul className="space-y-2 mb-4">
-                            {exp.highlights.map((h, i) => (
-                              <li key={i} className="flex items-start gap-2 text-gray-400 text-sm">
-                                <span className="text-indigo-400 mt-0.5 shrink-0">▹</span>
-                                <span>{h}</span>
-                              </li>
-                            ))}
-                          </ul>
-                          <div className="flex flex-wrap gap-1.5">
-                            {exp.tags.map((tag) => (
-                              <span key={tag} className="px-2.5 py-0.5 text-xs rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">{tag}</span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right spacer */}
-                      <div className={isLeft ? 'md:order-2' : ''} />
-
-                      {/* Center glowing node */}
-                      <div className="absolute left-1/2 top-6 -translate-x-1/2 z-10">
-                        <div className="timeline-node flex items-center justify-center">
-                          <div className="timeline-node-inner" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* === Mobile: Left-aligned timeline === */}
-                    <div className="md:hidden flex gap-4 sm:gap-6">
-                      {/* Glowing node on left line */}
-                      <div className="relative z-10 mt-1 flex items-start justify-center shrink-0" style={{ width: '32px' }}>
-                        <div className="timeline-node flex items-center justify-center">
-                          <div className="timeline-node-inner" />
-                        </div>
-                      </div>
-
-                      {/* Card */}
-                      <div className="flex-1 bento-card rounded-2xl p-4 sm:p-5 group overflow-visible">
-                        <div className="mb-3">
-                          <h3 className="text-sm sm:text-base font-bold text-white" style={{ lineHeight: '1.3' }}>{exp.role}</h3>
-                          <p className="text-indigo-400 font-medium text-xs sm:text-sm mt-0.5">{exp.company}</p>
-                          <p className="text-gray-500 text-[10px] sm:text-xs mt-0.5">{exp.location} • {exp.period}</p>
-                        </div>
-                        <ul className="space-y-1.5 mb-3">
-                          {exp.highlights.map((h, i) => (
-                            <li key={i} className="flex items-start gap-2 text-gray-400 text-[10px] sm:text-sm">
-                              <span className="text-indigo-400 mt-0.5 shrink-0">▹</span>
-                              <span>{h}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <div className="flex flex-wrap gap-1.5">
-                          {exp.tags.map((tag) => (
-                            <span key={tag} className="px-2 py-0.5 text-[9px] sm:text-xs rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">{tag}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+              {experiences.slice(0, 2).map((exp, index) => (
+                <JourneyCard key={exp.role} exp={exp} index={index} />
+              ))}
             </div>
+
+            <AnimatePresence initial={false}>
+              {journeyExpanded && (
+                <motion.div
+                  key="journey-more"
+                  initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                  animate={shouldReduceMotion ? { opacity: 1 } : { height: 'auto', opacity: 1 }}
+                  exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                  transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className="overflow-hidden"
+                >
+                  <div className="space-y-10 sm:space-y-12 md:space-y-16 pt-10 sm:pt-12 md:pt-16">
+                    {experiences.slice(2).map((exp, index) => (
+                      <JourneyCard key={exp.role} exp={exp} index={index + 2} />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {experiences.length > 2 && (
+              <div className="relative z-10 flex justify-center mt-10 sm:mt-12">
+                <motion.button
+                  type="button"
+                  onClick={() => setJourneyExpanded((prev) => !prev)}
+                  whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-md text-sm font-medium text-gray-200 hover:text-white hover:bg-white/[0.07] hover:border-white/15 transition-colors duration-300"
+                  aria-expanded={journeyExpanded}
+                >
+                  <span>{journeyExpanded ? 'View Less' : 'View More'}</span>
+                  <motion.svg
+                    className="w-4 h-4 text-indigo-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    animate={{ rotate: journeyExpanded ? 180 : 0 }}
+                    transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </motion.svg>
+                </motion.button>
+              </div>
+            )}
           </div>
         </div>
       </section>

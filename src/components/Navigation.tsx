@@ -123,7 +123,7 @@ export function Navigation() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-4 md:px-6 pt-3 sm:pt-4">
       {/* Main Nav Bar */}
-      <div className="max-w-7xl mx-auto">
+      <div className="relative z-[60] max-w-7xl mx-auto">
         <div className="liquid-glass rounded-2xl px-3 sm:px-4 md:px-5 py-2.5 sm:py-3">
           <div className="flex items-center justify-between gap-3">
             {/* Logo */}
@@ -192,10 +192,10 @@ export function Navigation() {
               <span>Get Your Website</span>
             </button>
 
-            {/* Mobile Hamburger */}
+            {/* Mobile Hamburger — liquid glass trigger (≤768px only) */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] text-white transition-all duration-300 hover:bg-white/[0.08]"
+              className="md:hidden flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border border-white/10 bg-white/5 backdrop-blur-md text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 hover:bg-white/10 active:scale-[0.97]"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
             >
@@ -218,59 +218,87 @@ export function Navigation() {
               </div>
             </button>
           </div>
-
-          {/* Mobile Dropdown */}
-          <AnimatePresence>
-            {mobileOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="md:hidden overflow-hidden"
-              >
-                <div className="pt-3 pb-2 border-t border-white/[0.06] mt-3">
-                  <div className="flex flex-col gap-1">
-                    {navLinks.map((link) => {
-                      const active = isActive(link);
-                      return (
-                        <button
-                          key={link.href}
-                          onClick={() => scrollToSection(link.href)}
-                          className={`relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
-                            active
-                              ? 'bg-purple-500/10 text-white'
-                              : 'text-gray-400 hover:text-white hover:bg-white/[0.03]'
-                          }`}
-                        >
-                          <span className={`transition-colors duration-300 ${active ? 'text-purple-400' : 'text-gray-500'}`}>
-                            {link.icon}
-                          </span>
-                          <span>{link.name}</span>
-                          {active && (
-                            <span className="ml-auto w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_6px_2px_rgba(168,85,247,0.5)]" />
-                          )}
-                        </button>
-                      );
-                    })}
-                    <button
-                      onClick={() => scrollToSection('#contact')}
-                      className="flex items-center justify-center gap-2 mt-2 px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-semibold transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M15 3h6v6" />
-                        <path d="M10 14L21 3" />
-                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                      </svg>
-                      <span>Get Your Website</span>
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
+
+      {/* Mobile liquid-glass overlay (≤768px only) */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            key="mobile-nav-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="md:hidden fixed inset-0 z-[55] w-full max-w-[100vw] overflow-x-hidden overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-xl"
+            onClick={() => setMobileOpen(false)}
+          >
+            <motion.nav
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="mx-auto w-full max-w-7xl px-3 sm:px-4 pt-[4.75rem] pb-8"
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Mobile navigation"
+            >
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-2 sm:p-3">
+                <div className="flex flex-col gap-1">
+                  {navLinks.map((link, index) => {
+                    const active = isActive(link);
+                    return (
+                      <motion.button
+                        key={link.href}
+                        type="button"
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{
+                          delay: 0.04 * index,
+                          duration: 0.3,
+                          ease: [0.25, 0.46, 0.45, 0.94],
+                        }}
+                        onClick={() => scrollToSection(link.href)}
+                        className={`relative flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-medium transition-all duration-300 ${
+                          active
+                            ? 'bg-purple-500/15 text-white'
+                            : 'text-gray-100 hover:text-white hover:bg-white/[0.06]'
+                        }`}
+                      >
+                        <span
+                          className={`transition-colors duration-300 ${
+                            active ? 'text-purple-300' : 'text-gray-300'
+                          }`}
+                        >
+                          {link.icon}
+                        </span>
+                        <span>{link.name}</span>
+                        {active && (
+                          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_6px_2px_rgba(168,85,247,0.5)]" />
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                  <motion.button
+                    type="button"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.3 }}
+                    onClick={() => scrollToSection('#contact')}
+                    className="flex items-center justify-center gap-2 mt-2 px-4 py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-semibold transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M15 3h6v6" />
+                      <path d="M10 14L21 3" />
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    </svg>
+                    <span>Get Your Website</span>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
